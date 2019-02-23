@@ -58,13 +58,15 @@ Mot d’un message commençant par un `#`. Ces thématiques doivent servir au re
 
 ### Utilisateur
 
+### Erreur
+
 ## Méthodes
 
 ### Création de compte
 Hacher le mdp ?
 ### Authoriser une connexion
 Hacher le mdp ?
-### Envoie d’un _tweet_
+### Envoie d’un gazouilli
 
 ### Demander à suivre des utilisateurs et/ou des thématiques
 
