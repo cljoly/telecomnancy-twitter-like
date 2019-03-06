@@ -1,9 +1,11 @@
 # MyTwitter : Spécification du protocole de communication client/serveur
+
 Version: 0.1
 
 
 ## Introduction
-Dans le cadre du projet de RSA, nous écrivons un service comparable à Twitter[^t].
+
+Dans le cadre du projet de RSA, nous écrivons un service semblable à Twitter[^t]. 
 
 Ce document décrit le protocole de communication entre un client et un serveur de ce service.
 
@@ -184,7 +186,19 @@ Valeur des codes d'erreur :
 
 ### Demander à suivre des utilisateurs et/ou des thématiques
 
-### Lister les abonnés et thématiques suivis
+### Lister les utilisateurs et thématiques suivis
+
+#### Requête
+
+``` json
+{ "method": "list", "params": {"abonnes": true, "thématiques": true}, id: 398 }
+```
+
+#### Réponse
+
+``` json
+{ "method": "list", "result": [], id: 398 }
+```
 
 ### Lister les abonnés d’un utilisateur
 
@@ -204,6 +218,7 @@ Pour référence/inspiration
 https://medium.com/@ConsenSys/blockchain-underpinnings-2c43ba03ecc9
 
 ## Références
+[^t]: https://twitter.com/
 [^msgpack]: https://msgpack.org/
 [^json]: http://json.org/
 [^jrpc]: https://www.jsonrpc.org/specification
