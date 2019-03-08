@@ -183,3 +183,6 @@ flycheck_*.el
 
 #Other
 .idea/*
+
+# HTML as production of markdown file
+*.html
