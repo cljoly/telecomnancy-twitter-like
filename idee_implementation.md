@@ -29,15 +29,21 @@
 - carac mdp
 - confirmer la connexion au client
 - le serveur fera raisonnablement confiance au client
+  - comportement simple -> jeter le paquet
 
 # Questions
 
 - unicode/ascii ?
+  - ASCII
 - ordre dans la spec : primitives de service & format apdu
 - cookie d’identification
 - nouveaux messages en continu
+  - attendre sur stdin & sur le réseau en parallèle
 
 - nom de la méthode : create_user
 - params:
   - p1
   - p2
+
+- limites dans le nombre de client ? (par exemple avec des fork)
+  - ok, 50
