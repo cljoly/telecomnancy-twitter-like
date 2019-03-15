@@ -4,6 +4,7 @@
 - pas de bd, messages de la session en mémoire (liste chainée d’objets)
 - limite du nb de client -> fork à chaque requête client (à tester) ? Un processus par client ?
 - faire expirer le cookie à la fermeture 
+- utiliser sqilte pour créer les comptes utilisateurs avec trucs suivis
 
 # Client
 
@@ -30,6 +31,20 @@
 - confirmer la connexion au client
 - le serveur fera raisonnablement confiance au client
   - comportement simple -> jeter le paquet
+
+  
+# Fonctionnalités en plus
+
+- Se désabonner
+- Enlever retweet de la spécification ?
+
+- Changement de mdp, de nom d’utilisateur
+- Biographie…
+- 
+
+## À faire
+- **Penser à tester en IPv6**
+- Script test automatique
 
 # Questions
 
