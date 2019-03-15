@@ -16,13 +16,17 @@ Dans cette partie nous définissons tous les termes utiles à notre application.
 
 ### Gazouilli
 Message publié par un utilisateur. C'est un message textuel d'un maximum de 140 caractères. Le message peut référencer une thématique particulière,
- mais pas un autre utilisateur. Les thématiques sont comptées dans la limite des 140 caractères. **ASCII, unicode ?**
+ mais pas un autre utilisateur. Les thématiques sont comptées dans la limite des 140 caractères. **ASCII**
+
+ Le nom d'auteur du gazouilli ne fait pas partie de la limite des 140 caractères d'un gazouilli. 
  
 ### Thématique
 Mot d’un message commençant par un `#`. Ces thématiques doivent servir au regroupement des messages ayant un thème commun. 
 Deux thématiques sont séparées par un espace. Les thématiques sont séparées du corps du message par un espace. Les thématiques peuvent
 se trouver à n'importe quelle position dans le message. Deux thématiques identiques n'ayant pas la meme casse seront considérées comme deux thématiques 
 différentes. Ainsi : `#Twitter` et `#twitter` seront considérées comme deux thématiques différentes.
+
+Chaque caractère de la thématique compte pour un caractère du gazouilli.
 
 ### Relayer un gazouilli
 Retransmettre le message d’un autre utilisateur à ses abonnés. La mention `relayé par <nom_relayeur>` est alors indiquée.
@@ -184,31 +188,105 @@ Valeur des codes d'erreur :
 
 ### Envoi d’un gazouilli
 
-### Demander à suivre des utilisateurs et/ou des thématiques
+Sens : Client - Serveur
 
-### Lister les utilisateurs et thématiques suivis
+Paramètres :
 
-#### Requête
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `gazouilli` | String | Message en ASCII de 140 caractères maximum |
+| `tags` | Tableau de Strings | Tags éventuels contenus dans le message |
 
-``` json
-{ "method": "list", "params": {"abonnes": true, "thématiques": true}, id: 398 }
-```
+Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli. 
 
-#### Réponse
+Un même tag présent X fois dans le gazouilli provoquera l'X envoi de ce gazouilli pour cette thématique.
 
-``` json
-{ "method": "list", "result": [], id: 398 }
-```
+#### Retour sans erreur : 
+
+Paramètres : aucun
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur :
+
+| Valeur | Description |
+|----:|:---|
+| 1 | Message comportant un/des caractère(s) non supporté(s) |
+| 2 | Message trop long |
+
+### Relayer un gazouilli
+
+**A voir plus tard car nécessite du stockage.     
+Ajouter un identifiant unique pour le message.**
+
+### Demander à suivre un utilisateur 
+
+Sens : Client - Serveur
+
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `username` | String | Nom d'utilisateur à suivre |
+
+
+#### Retour sans erreur : 
+
+Paramètres : aucun
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur :
+
+| Valeur | Description |
+|----:|:---|
+| 1 | Nom d'utilisateur inconnu |
+| 2 | Déjà abonné |
+
+### Demander à suivre une thématique
+
+Sens : Client - Serveur
+
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `tag` | String | Nom de la thématique à suivre |
+
+#### Retour sans erreur : 
+
+Paramètres : aucun
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur :
+
+| Valeur | Description |
+|----:|:---|
+| 1 | Nom d'utilisateur inconnu |
+| 2 | Déjà abonné |
+
+### Demander à ne plus suivre un utilisateur
+
+### Demander à ne plus suivre une thématique
+
+### Lister les utilisateurs suivis
+
+### Lister les thématiques suivies
 
 ### Lister les abonnés d’un utilisateur
 
-### Recevoir les messages d’utilisateurs ou de thématiques suivis
+### Recevoir un message provenant d'un autre utilisateur ou d'une thématique
 
 À tout moment
 
-### Déconnexion explicite
+### Déconnexion du client 
 
 Réponse : attente de l’accord du serveur.
+
+### Transférer un message reçu à tous les abonnés
+
+
 
 
 
