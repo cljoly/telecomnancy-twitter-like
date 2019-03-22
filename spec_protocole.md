@@ -1,6 +1,6 @@
 # MyTwitter : Spécification du protocole de communication client/serveur
 
-Version: 0.1
+Version: 1.0
 
 
 ## Introduction
@@ -16,10 +16,11 @@ Dans cette partie nous définissons tous les termes utiles à notre application.
 
 ### Gazouilli
 Message publié par un utilisateur. C'est un message textuel d'un maximum de 140 caractères. Le message peut référencer une thématique particulière,
- mais pas un autre utilisateur. Les thématiques sont comptées dans la limite des 140 caractères. **ASCII**
+mais pas un autre utilisateur. Les thématiques sont comptées dans la limite des 140 caractères. Les caractères seront encodés en ASCII.
 
- Le nom d'auteur du gazouilli ne fait pas partie de la limite des 140 caractères d'un gazouilli. 
- 
+Le nom d'auteur du gazouilli ne fait pas partie de la limite des 140 caractères d'un gazouilli. 
+
+
 ### Thématique
 Mot d’un message commençant par un `#`. Ces thématiques doivent servir au regroupement des messages ayant un thème commun. 
 Deux thématiques sont séparées par un espace. Les thématiques sont séparées du corps du message par un espace. Les thématiques peuvent
@@ -60,7 +61,7 @@ La spécification des requêtes est inspirée du JSON-RPC[^jrpc].
 #### Requêtes
 
 
-Une requ^ete doit avoir le format suivant :
+Une requête doit avoir le format suivant :
 
 | Champs | Rôle |
 |----:|:---|
@@ -116,6 +117,8 @@ Notes :
 - Si la requete possède un format incorrect, un message d'erreur sera renvoyé. Par exemple, si l’id n’est pas fourni par le client, la requête est incorrecte et on produit un réponse d’erreur avec un champs `id` contenant la valeur null
 - Le `code` de l’erreur doit toujours être associé à la même erreur. On définit :
     - Le code `10` pour un message dont le format n'est pas correct
+    - Le code `11` pour une erreur interne du côté serveur
+    - Le code `12` pour une erreur interne du côté client
 
 
 
@@ -123,11 +126,25 @@ Notes :
 
 ### Gazouilli
 
+Voici un exemple de la structure JSON d'un Gazouilli. Elle comporte trois champs : `id` qui est un entier, `content` qui est un String et `tags` qui est un tableau de String. Chaque `id` sera unique.
+``` Json
+{
+    "id": 3, 
+    "content": "Bonjour #MyTwitter et #HelloWorld !", 
+    "author": "JeanDupont",
+    "list_of_tags": ["MyTwitter", "HelloWorld"],
+    "date": "2019-03-18T17:15:00"
+}
+```
+
 ### Utilisateur
 
-### Erreur
-
-
+Voici un exemple de la structure JSON d'un utilisateur. Elle comporte un champs : `username`.
+``` Json
+{
+    "username": "LouisSchmit"
+}
+```
 
 ## Méthodes
 
@@ -186,7 +203,7 @@ Valeur des codes d'erreur :
 | 2 | Mot de passe incorrect |
 
 
-### Envoi d’un gazouilli
+### Envoi d’un gazouilli : `send_gazou`
 
 Sens : Client - Serveur
 
@@ -194,12 +211,12 @@ Paramètres :
 
 | Nom | Type | Description |
 |----:|:---:|:---|
-| `gazouilli` | String | Message en ASCII de 140 caractères maximum |
-| `tags` | Tableau de Strings | Tags éventuels contenus dans le message |
+| `gazouilli` | Gazouilli | Objet de type Gazouilli |
+
 
 Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli. 
 
-Un même tag présent X fois dans le gazouilli provoquera l'X envoi de ce gazouilli pour cette thématique.
+Un même tag présent X fois dans le gazouilli ne provoquera qu'un envoi de ce gazouilli pour cette thématique.
 
 #### Retour sans erreur : 
 
@@ -214,12 +231,31 @@ Valeur des codes d'erreur :
 | 1 | Message comportant un/des caractère(s) non supporté(s) |
 | 2 | Message trop long |
 
-### Relayer un gazouilli
+### Relayer un gazouilli : `relay_gazou`
 
-**A voir plus tard car nécessite du stockage.     
-Ajouter un identifiant unique pour le message.**
+Sens : Client - Serveur
 
-### Demander à suivre un utilisateur 
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `id_gazouilli` | entier | Identifiant unique du gazouilli |
+
+
+#### Retour sans erreur : 
+
+Paramètres : aucun
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur :
+
+| Valeur | Description |
+|----:|:---|
+| 1 | Nom d'utilisateur inconnu |
+| 2 | Déjà abonné |
+
+### Demander à suivre un utilisateur : `follow_user`
 
 Sens : Client - Serveur
 
@@ -243,7 +279,7 @@ Valeur des codes d'erreur :
 | 1 | Nom d'utilisateur inconnu |
 | 2 | Déjà abonné |
 
-### Demander à suivre une thématique
+### Demander à suivre une thématique : `follow_tag`
 
 Sens : Client - Serveur
 
@@ -266,34 +302,137 @@ Valeur des codes d'erreur :
 | 1 | Nom d'utilisateur inconnu |
 | 2 | Déjà abonné |
 
-### Demander à ne plus suivre un utilisateur
+### Demander à ne plus suivre un utilisateur : `unfollow_user`
 
-### Demander à ne plus suivre une thématique
+Sens : Client - Serveur
 
-### Lister les utilisateurs suivis
+Paramètres :
 
-### Lister les thématiques suivies
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `username` | String | Nom de l'utilisateur à ne plus suivre |
 
-### Lister les abonnés d’un utilisateur
+#### Retour sans erreur : 
 
-### Recevoir un message provenant d'un autre utilisateur ou d'une thématique
+Paramètres : aucun
 
-À tout moment
+#### Retour avec erreur :
 
-### Déconnexion du client 
+Valeur des codes d'erreur :
 
-Réponse : attente de l’accord du serveur.
+| Valeur | Description |
+|----:|:---|
+| 1 | Nom d'utilisateur inconnu |
+| 2 | Non abonné |
 
-### Transférer un message reçu à tous les abonnés
+### Demander à ne plus suivre une thématique : `unfollow_tag`
+
+Sens : Client - Serveur
+
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `tag` | String | Nom de la thématique à ne plus suivre |
+
+#### Retour sans erreur : 
+
+Paramètres : aucun
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur :
+
+| Valeur | Description |
+|----:|:---|
+| 1 | Nom de la thématique inconnue |
+| 2 | Non abonné |
+
+### Lister les utilisateurs suivis : `list_followed_users`
+
+Sens : Client - Serveur
+
+Paramètres : aucun
+
+#### Retour sans erreur : 
+
+Paramètres : 
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `list_of_users` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs suivis |
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
+
+### Lister les thématiques suivies : `list_followed_tags`
+
+Sens : Client - Serveur
+
+Paramètres : aucun
+
+#### Retour sans erreur : 
+
+Paramètres : 
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `list_of_tags` | Tableau de String | Liste des thématiques suivies |
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
+
+### Lister les abonnés d’un utilisateur : `list_my_followers`
+
+Sens : Client - Serveur
+
+Paramètres : aucun
+
+#### Retour sans erreur : 
+
+Paramètres : 
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `list_of_followers` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs auquels on est abonné |
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
+
+### Déconnexion du client : `deconnect`
+
+Sens : Client - Serveur
+
+Paramètres : aucun
+
+#### Retour sans erreur : 
+
+Paramètres : aucun 
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
+
+### Transférer un message reçu à tous les abonnés de l'auteur du gazouilli et aux utilisateurs suivants les thématiques mentionnées dans le gazouilli : `update`
+
+Sens : Serveur - Client
+
+**Information :** si un utilisateur receveur du gazouilli est à la fois un abonné de l'utilisateur auteur du gazouilli et abonné d'au moins une thématique contenue dans le gazouilli, le serveur devra veiller à n'envoyer le gazouilli qu'une et une seule fois.
+
+Paramètres : 
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `gazouilli` | Gazouilli | Objet Gazouilli |
+
+#### Retour sans erreur : 
+
+Paramètres : aucun 
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 
-
-
-
-
-Pour référence/inspiration
-
-https://medium.com/@ConsenSys/blockchain-underpinnings-2c43ba03ecc9
 
 ## Références
 [^t]: https://twitter.com/
