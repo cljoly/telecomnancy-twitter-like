@@ -219,7 +219,7 @@ Paramètres :
 
 Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli. 
 
-Un même tag présent X fois dans le gazouilli ne provoquera qu'un envoi de ce gazouilli pour cette thématique.
+Un même tag présent X fois dans le gazouilli ne provoquera qu'un seul envoi de ce gazouilli pour cette thématique.
 
 #### Retour sans erreur : 
 
