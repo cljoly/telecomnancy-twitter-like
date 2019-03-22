@@ -38,14 +38,17 @@ Utilisateur qui suit un autre utilisateur. Un abonné recevra tous les gazouilli
 
 ## Fonctionnalités :
 
-**à reprendre du sujet**
-
-
-
-
-
-
-
+- Fonctionnalité 1 : Une personne doit pouvoir s'inscrire sur MyTwitter, elle devient alors un utilisateur.
+- Fonctionnalité 2 : Un utilisateur doit pouvoir se connecter sur MyTwitter.
+- Fonctionnalité 3 : Un utilisateur connecté doit pouvoir envoyer un gazouilli. 
+- Fonctionnalité 4 : Un utilisateur connecté doit pouvoir demander de suivre un autre utilisateur.
+- Fonctionnalité 5 : Un utilisateur connecté doit pouvoir demander de suivre une thématique donnée.
+- Fonctionnalité 6 : Un utilisateur connecté doit pouvoir afficher la liste des utilisateurs qu'il suit
+- Fonctionnalité 7 : Un utilisateur connecté doit pouvoir afficher la liste des thématiques qu'il suit
+- Fonctionnalité 8 : Un utilisateur connecté doit pouvoir afficher la lsite des utilisateurs qui le suivent
+- Fonctionnalité 9 : Un utilisateur connecté doit pouvoir recevoir à tout moment les messages liés aux utilisateurs et/ou aux thématiques qu'il suit.
+- Fonctionnalité 10 : Un utilisateur connecté doit pouvoir relayer un message d'un autre utilisateur qu'il a reçu à ses propres abonnés
+- Fonctionnalité 11 : Un utilisateur connecté doit pouvoir se déconnecter
 
 
 ## Forme des APDU
