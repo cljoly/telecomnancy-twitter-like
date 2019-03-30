@@ -28,9 +28,10 @@
 #define SPEC_ERR_ALREADY_UNFOLLOWING_TAG   1
 // TODO Continuer avec la spec
 
-// Longueure du texte d’un gazouilli
+// Longueur du texte d’un gazouilli
 #define SPEC_GAZOU_SIZE 140
 
 #define DEFAULT_PORT 1234
+#define DEFAULT_PORT_STRING "1234"
 
 #endif /* end of include guard: SPEC_CONST_H_DSA5DIFO */

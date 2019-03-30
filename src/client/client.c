@@ -1,17 +1,14 @@
+#include <errno.h>
+#include <json.h>
+#include <limits.h>
+#include <netdb.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <json.h>
-#include <signal.h>
 
 #include "client.h"
 #include "tools.h"
@@ -59,7 +56,7 @@ int create_account() {
     };
     printf("Création d'un compte\n\n");
     fill_request(request, params);
-    if (send_message(sockfd, json_object_to_json_string(request)) != 0) {
+    if (send_message(json_object_to_json_string(request)) != 0) {
         return 1;
     }
     // free de la requête
@@ -68,7 +65,7 @@ int create_account() {
 
     // Lecture et gestion de la réponse
     json_object* result_params = NULL;
-    int error_code = get_response_result(sockfd, request_id, &result_params);
+    int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 1: //erreur de notre doc : elle est gérée, on met l'error_code à 0 et on continue
             print_message(ERROR, "Ce nom d'utilisateur existe déjà.\n");
@@ -141,8 +138,6 @@ int fill_request(json_object* request, const char** params_name) {
 }
 
 
-
-
 /**
  * Retourne la fonction correspondant au numéro donné
  * @param user_input le numéro de fonction voulu
@@ -158,33 +153,32 @@ request_function get_function(unsigned int user_input) {
 
 /**
  * Initialise la connection au serveur donné
- * @param server structure du serveur
- * @param server_port port du serveur
- * @return le descripteur de fichier de la socket à utiliser
+ * @param server_info structure contenant les informations du serveur
+ * @return la bonne server_info
  */
-int init_connection(const struct hostent* server, unsigned int server_port) {
-    //socket file descriptor
-    int sockfd = -1;
+const struct addrinfo* init_connection(const struct addrinfo* server_info) {
+    // addrinfo est une liste d'addrinfo compatibles pour se connecter au serveur demandé.
+    // On parcourt la liste pour trouver la bonne, c'est-à-dire le premier moyen de connexion qui arrive à connect()
+    while(server_info != NULL) {
+        // création de la socket avec les paramètres de l'addrinfo
+        sockfd = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
-    //connexion IPv4 (AF_INET), TCP (SOCK_STREAM)
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        fprintf(stderr, "Erreur création socket file descriptor\n");
-        exit(3);
+        // si on arrive à créer la socket
+        if (sockfd != -1) {
+            // On regarde si on arrive à se connecter
+            if(connect(sockfd, server_info->ai_addr, server_info->ai_addrlen) != -1) {
+                // On a réussi à connect, c'était la bonne address info
+                return server_info;
+            }
+        }
+
+        // Incrémentation
+        server_info = server_info->ai_next;
     }
 
-    struct sockaddr_in server_info;
-    memset(&server_info, 0, sizeof(struct sockaddr_in));
-
-    server_info.sin_family = AF_INET;
-    server_info.sin_port = htons((uint16_t) server_port);
-    server_info.sin_addr = *((struct in_addr*) server->h_addr);
-
-
-    if (connect(sockfd, (struct sockaddr*) &server_info, sizeof(struct sockaddr)) == -1) {
-        fprintf(stderr, "Erreur de connect\n");
-        exit(4);
-    }
-    return sockfd;
+    // On est sorti de la boucle, donc server_info == NULL: on n'a pas trouvé d'addrinfo valide
+    fprintf(stderr, "Erreur : impossible de se connecter (aucune addrinfo valide)\n");
+    exit(3);
 }
 
 /**
@@ -193,7 +187,7 @@ int init_connection(const struct hostent* server, unsigned int server_port) {
  * @param message Message à envoyer
  * @return 1 en cas d'erreur, 0 sinon
  */
-int send_message(int sockfd, const char* message) {
+int send_message(const char* message) {
     if (send(sockfd, message, strlen(message), 0) == -1) {
         fprintf(stderr, "Erreur envoi message: %s", strerror(errno));
         return 1;
@@ -203,11 +197,9 @@ int send_message(int sockfd, const char* message) {
 
 /**
  * Récupère et lit la réponse du serveur.
- * @param sockfd Le descripteur de fichier de la socket utilisée pour échanger avec le serveur
- * @param buf Le buffer pour récupérer la réponse
  * @return NULL en cas d'erreur, la réponse sinon.
  */
-json_object* get_response_object(int sockfd) {
+json_object* get_response_object() {
     json_object* response = NULL;
     json_tokener* tokener = json_tokener_new();
     enum json_tokener_error error = json_tokener_success;
@@ -251,8 +243,8 @@ int check_response(json_object* response, unsigned int request_id) {
     return 0;
 }
 
-int get_response_result(int sockfd, unsigned int id, json_object** result) {
-    json_object* response = get_response_object(sockfd);
+int get_response_result(unsigned int id, json_object** result) {
+    json_object* response = get_response_object();
     int error_code = check_response(response, id);
     if (error_code != 0) {
         *result = NULL;
@@ -282,28 +274,32 @@ int main(int argc, char* argv[]) {
     nvt.sa_handler = force_quit;
     sigaction(SIGINT, &nvt, NULL);
 
-    unsigned int srv_port = DEFAULT_PORT;
+    char* srv_port = DEFAULT_PORT_STRING;
 
     if (argc < 2) {
         usage();
         exit(1);
     } else if (argc == 3){
-        char* endptr;
-        srv_port = (unsigned int) strtoul(argv[2], &endptr, 10);
-        if (endptr == argv[2]) {
-            usage();
-            exit(1);
-        }
+        srv_port = argv[2];
     }
+    printf("Connection en TCP sur %s:%s\n", argv[1], srv_port);
+    struct addrinfo address_info_hints;
+    memset(&address_info_hints, 0, sizeof(struct addrinfo));
+    // Autorise IPv4 ou IPv6
+    address_info_hints.ai_family = AF_UNSPEC;
+    // On veut du TCP
+    address_info_hints.ai_socktype = SOCK_STREAM;
+    address_info_hints.ai_flags = 0;
+    address_info_hints.ai_protocol = 0;
 
-    struct hostent* server = NULL;
-    if ((server = gethostbyname(argv[1])) == NULL) {
-        fprintf(stderr, "Erreur gethostbyname\n");
+    struct addrinfo* address_info_result;
+    int s = getaddrinfo(argv[1], srv_port, &address_info_hints, &address_info_result);
+    if (s != 0) {
+        fprintf(stderr, "Erreur getaddrinfo: %s\n", gai_strerror(s));
         exit(2);
     }
 
-
-    sockfd = init_connection(server, srv_port);
+    init_connection(address_info_result);
 
     clear_all_terminal();
     printTitle();
