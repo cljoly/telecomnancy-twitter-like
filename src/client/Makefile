@@ -2,7 +2,7 @@ CFLAGS=-Wall -Werror -Wextra
 LIBFLAGS=-ldl -lpthread
 DEBUGFLAGS=
 
-all: rsfind
+all: client
 
 debug: DEBUGFLAGS=-g -DDEBUG
 debug: all
@@ -11,14 +11,14 @@ CC=gcc $(DEBUGFLAGS)
 %.o: %.c %.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-rsfind: src/rsfind.o src/utils.o src/optionRS.o src/listDir.o src/image.o src/print.o src/exec.o src/regex.o
+rsfind: src/client.o
 	$(CC) -o $@ $^ $(LIBFLAGS)
 
 clean:
-	rm -f src/*.o
+	rm -f *.o
 
 clean2: clean
-	rm -f rsfind
+	rm -f client
 
 test: debug
 	./test.sh
