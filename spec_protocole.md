@@ -60,6 +60,8 @@ C'est un format moins compact mais qui peut ^etre débuggé directement (sans av
 
 La spécification des requêtes est inspirée du JSON-RPC[^jrpc].
 
+La taille maximum d’une APDU est de 1500 octets.
+
 ### Format du dialogue client/serveur
 #### Requêtes
 
@@ -119,7 +121,7 @@ On préférera nommer explicitement les paramètres, dans un soucis de lisibilit
 Notes :
 - Si la requete possède un format incorrect, un message d'erreur sera renvoyé. Par exemple, si l’id n’est pas fourni par le client, la requête est incorrecte et on produit un réponse d’erreur avec un champs `id` contenant la valeur null
 - Le `code` de l’erreur doit toujours être associé à la même erreur. On définit :
-    - Le code `10` pour un message dont le format n'est pas correct
+    - Le code `10` pour un message dont le format n'est pas correct (par exemple s’il est trop long ou ne respecte pas le format JSON)
     - Le code `11` pour une erreur interne du côté serveur
     - Le code `12` pour une erreur interne du côté client
 
