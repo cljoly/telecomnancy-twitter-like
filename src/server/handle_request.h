@@ -2,7 +2,7 @@
 #ifndef TREAT_REQUEST_H_KWMRYRLJ
 #define TREAT_REQUEST_H_KWMRYRLJ
 
-// Répartit les requêtes
+// Répartit les requêtes, renvoie le nombre d’octet lus
 int dispatch_request(int sockfd);
 
 

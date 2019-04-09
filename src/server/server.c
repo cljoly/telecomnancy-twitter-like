@@ -14,25 +14,30 @@
 void usage() { printf("usage : servmulti numero_port_serveur\n"); }
 
 int main(int argc, char *argv[]) {
-  int sockfd;
+  int sockfd=3;
   int newsockfd;
   int childpid;
   int tab_clients[FDSET_SIZE];
+  for (int i = 0; i < FDSET_SIZE; i++) {
+    tab_clients[i]=-1;
+  }
   struct sockaddr_in serv_addr;
   struct sockaddr_in cli_addr;
   socklen_t clilen;
 
-  /* Verifier le nombre de paramètre en entrée */
+  /* Définition du port d’entrée */
+  int srv_port = DEFAULT_PORT;
   if (argc != 2) {
     usage();
-    exit(1);
+  } else {
+      srv_port = atoi(argv[1]);
   }
 
-  printf("Démarrage du serveur\n");
+  printf("Démarrage du serveur, port %i\n", srv_port);
 
   // Ouvrir une socket (a TCP socket)
   if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-    perror("servmulti : Probleme socket\n");
+    perror("servmulti : Probleme socket");
     exit(2);
   }
   fprintf(stderr, "Socket créée\n");
@@ -41,17 +46,17 @@ int main(int argc, char *argv[]) {
   memset((char *)&serv_addr, 0, sizeof(serv_addr));
   serv_addr.sin_family = PF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(atoi(argv[1]));
+  serv_addr.sin_port = htons(srv_port);
 
   if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    perror("servmulti : erreur bind\n");
+    perror("servmulti : erreur bind");
     exit(1);
   }
   fprintf(stderr, "Socket attachée\n");
 
   // Paramètrer le nombre de connexion "pending"
   if (listen(sockfd, SOMAXCONN) < 0) {
-    perror("servmulti : erreur listen\n");
+    perror("servmulti : erreur listen");
     exit(1);
   }
   fprintf(stderr, "listen, max %i\n", SOMAXCONN);
@@ -66,7 +71,6 @@ int main(int argc, char *argv[]) {
   FD_SET(sockfd, &rset);
 
   for (;;) {
-    fprintf(stderr, "for ----\n");
     pset = rset;
     int nbfd = select(maxfdp1, &pset, NULL, NULL, NULL);
     fprintf(stderr, "select: %i\n", nbfd);
@@ -74,12 +78,12 @@ int main(int argc, char *argv[]) {
       perror("Main.c: erreur select");
     }
 
-    if (FD_ISSET(sockfd, &pset)) {
+    if (FD_ISSET(sockfd, &pset)) { // Enregistrement d’un nouveau client
       clilen = sizeof(cli_addr);
       newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
       fprintf(stderr, "accept, socket: %i\n", newsockfd);
       if (newsockfd < 0) {
-        perror("servmulti : erreur accept\n");
+        perror("servmulti : erreur accept");
         exit(1);
       }
 
@@ -107,17 +111,36 @@ int main(int argc, char *argv[]) {
 
     // Parcourir le tableau des clients connectés
     int i = 0;
-    while ((nbfd > 0) && (i < FD_SETSIZE)) {
-      if ((childpid = fork()) < 0) {
-        perror("server: fork error\n");
-        exit(1);
-      } else if (childpid == 0) {
-        close(sockfd);
-        while (dispatch_request(newsockfd)) {}
-        exit(0);
+    int sock_client;
+    while ((nbfd > 0) && (i <= FDSET_SIZE)) {
+      sock_client = tab_clients[i];
+      if ((sock_client >= 0) && (FD_ISSET (sock_client, &pset))) {
+        // Le client a envoyé une donnée, la traiter
+        if ((childpid = fork()) < 0) {
+          perror("server: fork error");
+          exit(1);
+        } else if (childpid == 0) {
+          fprintf(stderr, "Forked\n");
+          close(sockfd);
+          // Dispatch request renvoie le nombre de donnée lues.
+          int dispatch_result = 1;
+          while (dispatch_result)
+            dispatch_result = dispatch_request(newsockfd);
+          /* Si aucune donnée n’a été lue, c’est que le client veut fermer la
+           * connexion (condition du while à 0) */
+          // Fermeture socket, désenregistrement du client
+          fprintf(stderr, "Fermeture de la connexion au client %i…\n", i);
+          close(sock_client);
+          tab_clients[i]=-1;
+          FD_CLR(sock_client, &rset);
+          fprintf(stderr, "Connexion au client %i fermée !\n", i);
+          // XXX On ne peut pas mettre à jour maxfdp1 parce qu’on est dans le
+          // fork, TODO éventuel « dire » au père de le mettre à jour
+          exit(0);
+        }
       }
+      i++;
     }
-
-    close(newsockfd);
   }
 }
+
