@@ -124,6 +124,7 @@ Notes :
     - Le code `10` pour un message dont le format n'est pas correct (par exemple s’il est trop long ou ne respecte pas le format JSON)
     - Le code `11` pour une erreur interne du côté serveur
     - Le code `12` pour une erreur interne du côté client
+    - Le code `13` pour une erreur liée à une fonctionnalité non implémentée côté client ou serveur.
 
 
 
