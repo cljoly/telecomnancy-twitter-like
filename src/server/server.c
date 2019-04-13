@@ -30,10 +30,10 @@ int main(int argc, char *argv[]) {
   if (argc != 2) {
     usage();
   } else {
-      srv_port = atoi(argv[1]);
+    srv_port = atoi(argv[1]);
   }
 
-  printf("Démarrage du serveur, port %i\n", srv_port);
+  printf("Démarrage du serveur, port %i, pid %i\n", srv_port, getpid());
 
   // Ouvrir une socket (a TCP socket)
   if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
 
   for (;;) {
     pset = rset;
+    fprintf(stderr, "select bloquant…\n");
     int nbfd = select(maxfdp1, &pset, NULL, NULL, NULL);
     fprintf(stderr, "select: %i\n", nbfd);
     if (nbfd <0) {
@@ -115,32 +116,35 @@ int main(int argc, char *argv[]) {
     while ((nbfd > 0) && (i <= FDSET_SIZE)) {
       sock_client = tab_clients[i];
       if ((sock_client >= 0) && (FD_ISSET (sock_client, &pset))) {
+        FD_CLR(sock_client, &pset);
         // Le client a envoyé une donnée, la traiter
         if ((childpid = fork()) < 0) {
           perror("server: fork error");
           exit(1);
-        } else if (childpid == 0) {
-          fprintf(stderr, "Forked\n");
+        } else if (childpid == 0) { // Fils
+          fprintf(stderr, "Forked %i, sock_client %i\n", getpid(), sock_client);
           close(sockfd);
           // Dispatch request renvoie le nombre de donnée lues.
           int dispatch_result = 1;
-          while (dispatch_result)
-            dispatch_result = dispatch_request(newsockfd);
+          dispatch_result = dispatch_request(newsockfd);
+          fprintf(stderr, "%i: DISPATCH_REQUEST %i\n", getpid(), dispatch_result);
           /* Si aucune donnée n’a été lue, c’est que le client veut fermer la
            * connexion (condition du while à 0) */
           // Fermeture socket, désenregistrement du client
-          fprintf(stderr, "Fermeture de la connexion au client %i…\n", i);
+          fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
           close(sock_client);
           tab_clients[i]=-1;
           FD_CLR(sock_client, &rset);
-          fprintf(stderr, "Connexion au client %i fermée !\n", i);
+          fprintf(stderr, "%i: Connexion au client %i fermée !\n", getpid(), i);
           // XXX On ne peut pas mettre à jour maxfdp1 parce qu’on est dans le
           // fork, TODO éventuel « dire » au père de le mettre à jour
+          fprintf(stderr, "Fin fork : %i\n", getpid());
           exit(0);
         }
       }
       i++;
     }
+    fprintf(stderr, "%i: ----- fin while\n", getpid());
   }
 }
 
