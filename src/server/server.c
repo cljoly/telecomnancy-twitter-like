@@ -126,21 +126,23 @@ int main(int argc, char *argv[]) {
           close(sockfd);
           // Dispatch request renvoie le nombre de donnée lues.
           int dispatch_result = 1;
-          dispatch_result = dispatch_request(newsockfd);
-          fprintf(stderr, "%i: DISPATCH_REQUEST %i\n", getpid(), dispatch_result);
           /* Si aucune donnée n’a été lue, c’est que le client veut fermer la
            * connexion (condition du while à 0) */
-          // Fermeture socket, désenregistrement du client
+          while (dispatch_result != 0) {
+            fprintf(stderr, "%i: DISPATCH_REQUEST %i\n", getpid(), dispatch_result);
+            dispatch_result = dispatch_request(newsockfd);
+          }
           fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
-          close(sock_client);
-          tab_clients[i]=-1;
-          FD_CLR(sock_client, &rset);
-          fprintf(stderr, "%i: Connexion au client %i fermée !\n", getpid(), i);
-          // XXX On ne peut pas mettre à jour maxfdp1 parce qu’on est dans le
-          // fork, TODO éventuel « dire » au père de le mettre à jour
-          fprintf(stderr, "Fin fork : %i\n", getpid());
+        close(sock_client);
           exit(0);
         }
+          // Fermeture socket, désenregistrement du client
+          fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
+        close(sock_client);
+        tab_clients[i]=-1;
+        FD_CLR(sock_client, &rset);
+        fprintf(stderr, "%i: Connexion au client %i fermée !\n", getpid(), i);
+        fprintf(stderr, "Fin fork : %i\n", getpid());
       }
       i++;
     }
