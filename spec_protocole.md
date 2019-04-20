@@ -5,7 +5,7 @@ Version: 1.0
 
 ## Introduction
 
-Dans le cadre du projet de RSA, nous écrivons un service semblable à Twitter[^t]. 
+Dans le cadre du projet de RSA, nous écrivons un service semblable à Twitter[^t].
 
 Ce document décrit le protocole de communication entre un client et un serveur de ce service.
 
@@ -18,13 +18,13 @@ Dans cette partie nous définissons tous les termes utiles à notre application.
 Message publié par un utilisateur. C'est un message textuel d'un maximum de 140 caractères. Le message peut référencer une thématique particulière,
 mais pas un autre utilisateur. Les thématiques sont comptées dans la limite des 140 caractères. Les caractères seront encodés en ASCII.
 
-Le nom d'auteur du gazouilli ne fait pas partie de la limite des 140 caractères d'un gazouilli. 
+Le nom d'auteur du gazouilli ne fait pas partie de la limite des 140 caractères d'un gazouilli.
 
 
 ### Thématique
-Mot d’un message commençant par un `#`. Ces thématiques doivent servir au regroupement des messages ayant un thème commun. 
+Mot d’un message commençant par un `#`. Ces thématiques doivent servir au regroupement des messages ayant un thème commun.
 Deux thématiques sont séparées par un espace. Les thématiques sont séparées du corps du message par un espace. Les thématiques peuvent
-se trouver à n'importe quelle position dans le message. Deux thématiques identiques n'ayant pas la meme casse seront considérées comme deux thématiques 
+se trouver à n'importe quelle position dans le message. Deux thématiques identiques n'ayant pas la meme casse seront considérées comme deux thématiques
 différentes. Ainsi : `#Twitter` et `#twitter` seront considérées comme deux thématiques différentes.
 
 Chaque caractère de la thématique compte pour un caractère du gazouilli.
@@ -40,7 +40,7 @@ Utilisateur qui suit un autre utilisateur. Un abonné recevra tous les gazouilli
 
 - Fonctionnalité 1 : Une personne doit pouvoir s'inscrire sur MyTwitter, elle devient alors un utilisateur.
 - Fonctionnalité 2 : Un utilisateur doit pouvoir se connecter sur MyTwitter.
-- Fonctionnalité 3 : Un utilisateur connecté doit pouvoir envoyer un gazouilli. 
+- Fonctionnalité 3 : Un utilisateur connecté doit pouvoir envoyer un gazouilli.
 - Fonctionnalité 4 : Un utilisateur connecté doit pouvoir demander de suivre un autre utilisateur.
 - Fonctionnalité 5 : Un utilisateur connecté doit pouvoir demander de suivre une thématique donnée.
 - Fonctionnalité 6 : Un utilisateur connecté doit pouvoir afficher la liste des utilisateurs qu'il suit
@@ -52,11 +52,11 @@ Utilisateur qui suit un autre utilisateur. Un abonné recevra tous les gazouilli
 
 
 ## Forme des APDU
-Les APDU seront codés avec le format binaire msgpack[^msgpack]. Il présente l’avantage d’être compact, 
+Les APDU seront codés avec le format binaire msgpack[^msgpack]. Il présente l’avantage d’être compact,
 tout en étant relativement facile à déboguer, puisqu’il peut être converti dans les deux sens en JSON[^json].
 
 Après réflexion, nous décidons de travailler directement avec un format de données en JSON, dans un souci de simplicité de débuggage.
-C'est un format moins compact mais qui peut ^etre débuggé directement (sans avoir à être converti). 
+C'est un format moins compact mais qui peut ^etre débuggé directement (sans avoir à être converti).
 
 La spécification des requêtes est inspirée du JSON-RPC[^jrpc].
 
@@ -106,7 +106,7 @@ Si le nombre de paramètre est inconnu, on pourra utiliser un tableau de paramè
 
 On préférera nommer explicitement les paramètres, dans un soucis de lisibilité.
 
-#### Réponse sans erreur 
+#### Réponse sans erreur
 
 ``` json
 {"result": "nom_methode", "params": {"param1": "val1", "param2": "val2"}, "id": 3}
@@ -135,8 +135,8 @@ Notes :
 Voici un exemple de la structure JSON d'un Gazouilli. Elle comporte trois champs : `id` qui est un entier, `content` qui est un String et `tags` qui est un tableau de String. Chaque `id` sera unique.
 ``` Json
 {
-    "id": 3, 
-    "content": "Bonjour #MyTwitter et #HelloWorld !", 
+    "id": 3,
+    "content": "Bonjour #MyTwitter et #HelloWorld !",
     "author": "JeanDupont",
     "list_of_tags": ["MyTwitter", "HelloWorld"],
     "date": "2019-03-18T17:15:00"
@@ -155,7 +155,7 @@ Voici un exemple de la structure JSON d'un utilisateur. Elle comporte un champs 
 ## Méthodes
 
 ### Création de compte : `create_account`
- 
+
 Sens : Client - Serveur
 
 Paramètres :
@@ -165,7 +165,7 @@ Paramètres :
 | `username` | String | Nom d'utilisateur |
 | `password` | String | Mot de passe |
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres : aucun
 
@@ -189,7 +189,7 @@ Paramètres :
 | `username` | String | Nom d'utilisateur |
 | `password` | String | Mot de passe |
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres :
 
@@ -220,11 +220,11 @@ Paramètres :
 | `gazouilli` | Gazouilli | Objet de type Gazouilli |
 
 
-Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli. 
+Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli.
 
 Un même tag présent X fois dans le gazouilli ne provoquera qu'un seul envoi de ce gazouilli pour cette thématique.
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres : aucun
 
@@ -248,7 +248,7 @@ Paramètres :
 | `id_gazouilli` | entier | Identifiant unique du gazouilli |
 
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres : aucun
 
@@ -272,7 +272,7 @@ Paramètres :
 | `username` | String | Nom d'utilisateur à suivre |
 
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres : aucun
 
@@ -295,7 +295,7 @@ Paramètres :
 |----:|:---:|:---|
 | `tag` | String | Nom de la thématique à suivre |
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres : aucun
 
@@ -318,7 +318,7 @@ Paramètres :
 |----:|:---:|:---|
 | `username` | String | Nom de l'utilisateur à ne plus suivre |
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres : aucun
 
@@ -341,7 +341,7 @@ Paramètres :
 |----:|:---:|:---|
 | `tag` | String | Nom de la thématique à ne plus suivre |
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
 Paramètres : aucun
 
@@ -360,9 +360,9 @@ Sens : Client - Serveur
 
 Paramètres : aucun
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
-Paramètres : 
+Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_users` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs suivis |
@@ -377,9 +377,9 @@ Sens : Client - Serveur
 
 Paramètres : aucun
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
-Paramètres : 
+Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_tags` | Tableau de String | Liste des thématiques suivies |
@@ -394,9 +394,9 @@ Sens : Client - Serveur
 
 Paramètres : aucun
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
-Paramètres : 
+Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_followers` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs auquels on est abonné |
@@ -405,15 +405,15 @@ Paramètres :
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
-### Déconnexion du client : `deconnect`
+### Déconnexion du client : `disconnect`
 
 Sens : Client - Serveur
 
 Paramètres : aucun
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
-Paramètres : aucun 
+Paramètres : aucun
 
 #### Retour avec erreur :
 
@@ -425,14 +425,14 @@ Sens : Serveur - Client
 
 **Information :** si un utilisateur receveur du gazouilli est à la fois un abonné de l'utilisateur auteur du gazouilli et abonné d'au moins une thématique contenue dans le gazouilli, le serveur devra veiller à n'envoyer le gazouilli qu'une et une seule fois.
 
-Paramètres : 
+Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `gazouilli` | Gazouilli | Objet Gazouilli |
 
-#### Retour sans erreur : 
+#### Retour sans erreur :
 
-Paramètres : aucun 
+Paramètres : aucun
 
 #### Retour avec erreur :
 
