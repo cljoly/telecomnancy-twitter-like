@@ -1,5 +1,5 @@
-CFLAGS=-Wall -Werror -Wextra
-LIBFLAGS=-ldl -lpthread
+CFLAGS=-Wall -Werror -Wextra $(shell pkg-config --cflags json-c)
+LIBFLAGS=-ldl -lpthread $(shell pkg-config --libs json-c)
 DEBUGFLAGS=
 
 all: client
@@ -11,7 +11,7 @@ CC=gcc $(DEBUGFLAGS)
 %.o: %.c %.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-rsfind: src/client.o
+client: client.o
 	$(CC) -o $@ $^ $(LIBFLAGS)
 
 clean:

@@ -11,6 +11,8 @@
 
 #include "client.h"
 
+#include <json.h>
+
 #define TERM_WIDTH 140
 
 /**
@@ -22,12 +24,20 @@ int not_implemented() {
     return 1;
 }
 
-int test_hello(void* sockfd_ptr) {
-    if (send(*(int*)sockfd_ptr, "Hello, world!\n", 15, 0) == -1) {
-        fprintf(stderr, "Erreur envoi message\n");
-        return 1;
-    }
-    return 0;
+
+int test_hello(int sockfd) {
+    return send_message(sockfd, "Hello world!");
+}
+
+int create_account(int sockfd) {
+    json_object* request = create_request("create_account");
+    const char* params[] = {
+            "username",
+            "password",
+            NULL
+    };
+    fill_request(request, params);
+    return send_message(sockfd, json_object_to_json_string(request));
 }
 
 /**
@@ -36,9 +46,44 @@ int test_hello(void* sockfd_ptr) {
  * @param sockfd_ptr
  * @return
  */
-int disconnect(void* sockfd_ptr) {
-    close(*(int*)sockfd_ptr);
+int disconnect(int sockfd) {
+    close(sockfd);
     exit(0);
+}
+
+
+/**
+ * Fonction générique préparant un object JSON de requête avec un identifiant unique.
+ * Cette fonction ne gère pas les paramètres
+ * @param method le nom la méthode de requête
+ * @return l'object JSON pré-rempli
+ */
+json_object* create_request(const char* method) {
+    static unsigned int id = 0;
+    json_object* request = json_object_new_object();
+    json_object_object_add(request, "request", json_object_new_string(method));
+    json_object_object_add(request, "id", json_object_new_int(id));
+    id++;
+    return request;
+}
+
+int fill_request(json_object* request, const char** params_name) {
+
+    char buf[MAXDATASIZE];
+    json_object* params = json_object_new_object();
+    for (int i = 0; params_name[i] != NULL; i++) {
+        memset(buf, 0, MAXDATASIZE);
+        if (prompt_user_for_parameter(params_name[i], buf) != 0) {
+            return 1;
+        }
+        if (json_object_object_add(params, params_name[i], json_object_new_string(buf)) != 0) {
+            return 2;
+        }
+    }
+    if (json_object_object_add(request, "params", params) != 0) {
+        return 3;
+    }
+    return 0;
 }
 
 
@@ -91,15 +136,30 @@ unsigned int prompt_user() {
     // conversion et test
     char* endptr;
     unsigned int input = strtoul(buf, &endptr, 10);
-    if( endptr == buf) {
+    if (endptr == buf) {
         return -1;
     }
 
-    if( input > commands_count ) {
+    if (input > commands_count) {
         fprintf(stderr, "Commande invalide\n");
         return -1;
     }
     return input;
+}
+
+/**
+ * Demande la valeur d'un paramètre d'une requête à l'utilisateur
+ * @param prompt Le message affiché pour expliquer la demande
+ * @param result L'entrée tappée par l'utilisateur
+ * @return 1 en cas d'erreur, 0 sinon
+ */
+int prompt_user_for_parameter(const char* prompt, char* result) {
+    printf("%s : ", prompt);
+    int scanned_items = scanf("%s", result);
+    if (scanned_items != 1) {
+        return 1;
+    }
+    return 0;
 }
 
 /**
@@ -116,29 +176,11 @@ request_function get_function(unsigned int user_input) {
 }
 
 /**
- * Récupère et lit la réponse du serveur.
- * @param sockfd Le descripteur de fichier de la socket utilisée pour échanger avec le serveur
- * @param buf Le buffer pour récupérer la réponse
- * @return
- */
-char* get_response(int sockfd, char* buf, size_t bufsize) {
-    ssize_t receive_data_size = -1;
-
-    if ((receive_data_size = recv(sockfd, buf, bufsize, 0)) == -1) {
-        fprintf(stderr, "Erreur réception message \n");
-        exit(6);
-    }
-
-    buf[receive_data_size] = '\0';
-    return buf;
-}
-
-/**
  * Initialise la connection au serveur donné
  * @param server
  * @return le descripteur de fichier de la socket à utiliser
  */
-int init_connection(struct hostent* server) {
+int init_connection(const struct hostent* server) {
     //socket file descriptor
     int sockfd = -1;
 
@@ -163,6 +205,38 @@ int init_connection(struct hostent* server) {
     return sockfd;
 }
 
+/**
+ * Envoie le message donné sur la socket donnée
+ * @param sockfd Descripteur de fichier de la socket
+ * @param message Message à envoyer
+ * @return 1 en cas d'erreur, 0 sinon
+ */
+int send_message(int sockfd, const char* message) {
+    if (send(sockfd, message, strlen(message), 0) == -1) {
+        fprintf(stderr, "Erreur envoi message: %s", strerror(errno));
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ * Récupère et lit la réponse du serveur.
+ * @param sockfd Le descripteur de fichier de la socket utilisée pour échanger avec le serveur
+ * @param buf Le buffer pour récupérer la réponse
+ * @return NULL en cas d'erreur, le message sinon.
+ */
+char* get_response(int sockfd, char* buf, size_t bufsize) {
+    ssize_t receive_data_size = -1;
+
+    if ((receive_data_size = recv(sockfd, buf, bufsize, 0)) == -1) {
+        fprintf(stderr, "Erreur réception message \n");
+        return NULL;
+    }
+
+    buf[receive_data_size] = '\0';
+    return buf;
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -181,14 +255,13 @@ int main(int argc, char* argv[]) {
     int sockfd = init_connection(server);
 
 
-
     while (1) {
         // récupération de la commande utilisateur
         int command = prompt_user();
         request_function function = get_function(command);
 
         // Appel de la fonction
-        if( function(&sockfd) != 0) {
+        if (function(sockfd) != 0) {
             // Exit in case of error
             break;
         }
