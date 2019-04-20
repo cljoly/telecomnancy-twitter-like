@@ -18,8 +18,8 @@ int dispatch_request(int sockfd) {
     exit(1);
   }
   msg[nrcv] = '\0';
-  fprintf(stderr, "dispatch: processus %d\n", getpid());
-  fprintf(stderr, "==>(%d) %s \n", nrcv, msg);
+  fprintf(stderr, "%d: nrcv: %d\n", getpid(), nrcv);
+  fprintf(stderr, "==>(%d) %s \n", getpid(), msg);
 
   // Réécrire le message envoyé par le client
   if ((nsnd = write(sockfd, msg, nrcv)) < 0) {
