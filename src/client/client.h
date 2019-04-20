@@ -1,0 +1,13 @@
+//
+// Created by laury on 18/04/19.
+//
+
+#ifndef PROJET_RSA_DEDONATO_JOLY_CLIENT_H
+#define PROJET_RSA_DEDONATO_JOLY_CLIENT_H
+
+#define DEFAULT_PORT 1234
+#define MAXDATASIZE 140
+
+void usage();
+
+#endif //PROJET_RSA_DEDONATO_JOLY_CLIENT_H
