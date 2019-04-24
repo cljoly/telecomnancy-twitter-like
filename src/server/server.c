@@ -18,8 +18,10 @@ int main(int argc, char *argv[]) {
   int newsockfd;
   int childpid;
   int tab_clients[FDSET_SIZE];
+  // Un simple int tab_clients[FDSET_SIZE] = {-1}; n’initialise pas tout le
+  // tableau, seulement la première valeur
   for (int i = 0; i < FDSET_SIZE; i++) {
-    tab_clients[i]=-1;
+    tab_clients[i] = -1;
   }
   struct sockaddr_in serv_addr;
   struct sockaddr_in cli_addr;
@@ -40,7 +42,7 @@ int main(int argc, char *argv[]) {
     perror("servmulti : Probleme socket");
     exit(2);
   }
-  fprintf(stderr, "Socket créée\n");
+  printf("Socket créée\n");
 
   // Lier l'adresse  locale à la socket
   memset((char *)&serv_addr, 0, sizeof(serv_addr));
@@ -50,16 +52,16 @@ int main(int argc, char *argv[]) {
 
   if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
     perror("servmulti : erreur bind");
-    exit(1);
+    exit(3);
   }
-  fprintf(stderr, "Socket attachée\n");
+  printf("Socket attachée\n");
 
   // Paramètrer le nombre de connexion "pending"
   if (listen(sockfd, SOMAXCONN) < 0) {
     perror("servmulti : erreur listen");
-    exit(1);
+    exit(4);
   }
-  fprintf(stderr, "listen, max %i\n", SOMAXCONN);
+  printf("listen, max %i\n", SOMAXCONN);
 
   int maxfdp1 = sockfd + 1;
 
@@ -72,9 +74,9 @@ int main(int argc, char *argv[]) {
 
   for (;;) {
     pset = rset;
-    fprintf(stderr, "select bloquant…\n");
+    printf("select bloquant…\n");
     int nbfd = select(maxfdp1, &pset, NULL, NULL, NULL);
-    fprintf(stderr, "select: %i\n", nbfd);
+    printf("select: %i\n", nbfd);
     if (nbfd <0) {
       perror("Main.c: erreur select");
     }
@@ -82,19 +84,19 @@ int main(int argc, char *argv[]) {
     if (FD_ISSET(sockfd, &pset)) { // Enregistrement d’un nouveau client
       clilen = sizeof(cli_addr);
       newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
-      fprintf(stderr, "accept, socket: %i\n", newsockfd);
+      printf("accept, socket: %i\n", newsockfd);
       if (newsockfd < 0) {
         perror("servmulti : erreur accept");
-        exit(1);
+        exit(5);
       }
 
       // Recherche d’une place libre dans le tableau
       int i = 0;
       while ((i < FD_SETSIZE) && (tab_clients[i] >= 0)) i++;
       if (i == FD_SETSIZE) {
-        exit(1);
+        exit(6);
       }
-      fprintf(stderr, "place libre: %i\n", i);
+      printf("place libre: %i\n", i);
 
       // Ajout du nouveau client au tableau des clients
       tab_clients[i] = newsockfd;
@@ -105,7 +107,7 @@ int main(int argc, char *argv[]) {
       // Positionner maxfdp1
       if (newsockfd >= maxfdp1) {
         maxfdp1 = newsockfd + 1;
-        fprintf(stderr, "maxfdp1 mis à jour: %i\n", maxfdp1);
+        printf("maxfdp1 mis à jour: %i\n", maxfdp1);
       }
       nbfd--;
     }
@@ -120,33 +122,33 @@ int main(int argc, char *argv[]) {
         // Le client a envoyé une donnée, la traiter
         if ((childpid = fork()) < 0) {
           perror("server: fork error");
-          exit(1);
+          exit(7);
         } else if (childpid == 0) { // Fils
-          fprintf(stderr, "Forked %i, sock_client %i\n", getpid(), sock_client);
+          printf("Forked %i, sock_client %i\n", getpid(), sock_client);
           close(sockfd);
           // Dispatch request renvoie le nombre de donnée lues.
           int dispatch_result = 1;
           /* Si aucune donnée n’a été lue, c’est que le client veut fermer la
            * connexion (condition du while à 0) */
           while (dispatch_result != 0) {
-            fprintf(stderr, "%i: DISPATCH_REQUEST %i\n", getpid(), dispatch_result);
+            printf("%i: DISPATCH_REQUEST %i\n", getpid(), dispatch_result);
             dispatch_result = dispatch_request(newsockfd);
           }
-          fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
+          printf("%i: Fermeture de la connexion au client %i…\n", getpid(), i);
         close(sock_client);
           exit(0);
         }
           // Fermeture socket, désenregistrement du client
-          fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
+          printf("%i: Fermeture de la connexion au client %i…\n", getpid(), i);
         close(sock_client);
         tab_clients[i]=-1;
         FD_CLR(sock_client, &rset);
-        fprintf(stderr, "%i: Connexion au client %i fermée !\n", getpid(), i);
-        fprintf(stderr, "Fin fork : %i\n", getpid());
+        printf("%i: Connexion au client %i fermée !\n", getpid(), i);
+        printf("Fin fork : %i\n", getpid());
       }
       i++;
     }
-    fprintf(stderr, "%i: ----- fin while\n", getpid());
+    printf("%i: ----- fin while\n", getpid());
   }
 }
 

@@ -15,16 +15,16 @@ int dispatch_request(int sockfd) {
   memset((char *)msg, 0, sizeof(msg));
   if ((nrcv = read(sockfd, msg, sizeof(msg) - 1)) < 0) {
     perror("dispatch: readn error on socket");
-    exit(1);
+    exit(8);
   }
   msg[nrcv] = '\0';
-  fprintf(stderr, "%d: nrcv: %d\n", getpid(), nrcv);
-  fprintf(stderr, "==>(%d) %s \n", getpid(), msg);
+  printf("%d: nrcv: %d\n", getpid(), nrcv);
+  printf("==>(%d) %s \n", getpid(), msg);
 
   // Réécrire le message envoyé par le client
   if ((nsnd = write(sockfd, msg, nrcv)) < 0) {
-    printf("servmulti : writen error on socket");
-    exit(1);
+    perror("servmulti : writen error on socket");
+    exit(9);
   }
   printf("nsnd = %d \n", nsnd);
   return nrcv;
