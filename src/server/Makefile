@@ -13,7 +13,7 @@ OBJEXT      := o
 
 #Flags and Libraries
 CFLAGS      := -Wall -Werror -Wextra -Wformat -g $(shell pkg-config --cflags json-c)
-LIB         := $(shell pkg-config --libs json-c)
+LIB         := $(shell pkg-config --libs json-c) -lsqlite3
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
