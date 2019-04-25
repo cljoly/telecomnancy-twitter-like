@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <json.h>
 
 #include "handle_request.h"
 #include "const.h"

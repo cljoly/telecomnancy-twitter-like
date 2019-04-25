@@ -12,8 +12,8 @@ SRCEXT      := c
 OBJEXT      := o
 
 #Flags and Libraries
-CFLAGS      := -Wall -Werror -Wextra -Wformat -g
-LIB         :=
+CFLAGS      := -Wall -Werror -Wextra -Wformat -g $(shell pkg-config --cflags json-c)
+LIB         := $(shell pkg-config --libs json-c)
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
