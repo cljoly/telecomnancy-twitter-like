@@ -3,7 +3,7 @@
 #include <sqlite3.h>
 
 sqlite3 *open_db();
-int exec_db(sqlite3 *db, const char *statement);
+int exec_db(sqlite3 *db, const char *statement, int (*callback)(void*,int,char**,char**), void *value);
 void close_db(sqlite3 *db);
 
 #endif /* end of include guard: DB_H_GJIHP7XQ */
