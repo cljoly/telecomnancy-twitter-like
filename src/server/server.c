@@ -26,8 +26,8 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < FDSET_SIZE; i++) {
     tab_clients[i] = -1;
   }
-  struct sockaddr_in serv_addr;
-  struct sockaddr_in cli_addr;
+  struct sockaddr_in6 serv_addr;
+  struct sockaddr_in6 cli_addr;
   socklen_t clilen;
 
   /* Définition du port d’entrée */
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   printf("Démarrage du serveur, port %i, pid %i\n", srv_port, getpid());
 
   // Ouvrir une socket (a TCP socket)
-  if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+  if ((sockfd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
     perror("servmulti : Probleme socket");
     exit(2);
   }
@@ -49,9 +49,9 @@ int main(int argc, char *argv[]) {
 
   // Lier l'adresse  locale à la socket
   memset((char *)&serv_addr, 0, sizeof(serv_addr));
-  serv_addr.sin_family = PF_INET;
-  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(srv_port);
+  serv_addr.sin6_family = PF_INET6;
+  //serv_addr.sin6_addr.s_addr = htonl(INADDR_ANY);
+  serv_addr.sin6_port = htons(srv_port);
 
   if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
     perror("servmulti : erreur bind");
