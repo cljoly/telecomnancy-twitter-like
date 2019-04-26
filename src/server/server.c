@@ -8,9 +8,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <json.h>
+#include <sqlite3.h>
 
 #include "handle_request.h"
 #include "const.h"
+#include "db.h"
 
 void usage() { printf("usage : servmulti numero_port_serveur\n"); }
 
@@ -129,13 +131,15 @@ int main(int argc, char *argv[]) {
           close(sockfd);
           // Dispatch request renvoie le nombre de donnée lues.
           int dispatch_result = 1;
+          sqlite3 *db = open_db();
           /* Si aucune donnée n’a été lue, c’est que le client veut fermer la
            * connexion (condition du while à 0) */
           while (dispatch_result != 0) {
             printf("%i: DISPATCH_REQUEST %i\n", getpid(), dispatch_result);
-            dispatch_result = dispatch_request(newsockfd);
+            dispatch_result = dispatch_request(newsockfd, db);
           }
           printf("%i: Fermeture de la connexion au client %i…\n", getpid(), i);
+          close_db(db);
         close(sock_client);
           exit(0);
         }

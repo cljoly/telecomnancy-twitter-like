@@ -8,8 +8,9 @@
 #include "handle_request.h"
 #include "const.h"
 #include "methods.h"
+#include "db.h"
 
-int dispatch_request(int sockfd) {
+int dispatch_request(int sockfd, sqlite3 *db) {
   int nrcv;
   int nsnd;
   char msg[BUFSIZE];
@@ -25,13 +26,13 @@ int dispatch_request(int sockfd) {
   printf("==>(%d) %s \n", getpid(), msg);
 
   // XXX Code seulement pour tester la base de données, à enlever ensuite
-  create_account("toto", "1234");
-  create_account("tuto", "1234");
-  create_account("tutu", "1234");
-  create_account("tota", "1234");
-  create_account("totu", "1234");
-  create_account("tuta", "1234");
-  create_account("tata", "1234");
+  create_account("toto", "1234", db);
+  create_account("tuto", "1234", db);
+  create_account("tutu", "1234", db);
+  create_account("tota", "1234", db);
+  create_account("totu", "1234", db);
+  create_account("tuta", "1234", db);
+  create_account("tata", "1234", db);
 
   // Réécrire le message envoyé par le client
   if ((nsnd = write(sockfd, msg, nrcv)) < 0) {

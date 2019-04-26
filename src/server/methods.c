@@ -26,8 +26,7 @@ int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
  * @param jparam objet json contenant les paramètres de la méthode
  * @return 0 tout s’est bien passé, autre : code d’erreur de la spec
  */
-int create_account(char *user, char *pass) {
-  sqlite3 *db = open_db();
+int create_account(char *user, char *pass, sqlite3 *db) {
   char stmt[BUFSIZE];
   // Pas de vérification de l’unicité du cookie même si la base de donnée le
   // vérifie : la proba de collision est faible à cause de la
@@ -42,7 +41,6 @@ int create_account(char *user, char *pass) {
   sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
-  close_db(db);
   return 0;
 }
 
