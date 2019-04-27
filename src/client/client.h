@@ -37,12 +37,12 @@ char* commands[] = {
  *         <0 en cas d'erreur dans le message
  *  Elle est responsable d'afficher un message d'erreur pour l'utilisateur
  */
-typedef int(* request_function)(int sockfd_ptr);
+typedef int(* request_function)();
 
 int not_implemented();
 
-int create_account(int sockfd);
-int disconnect(int sockfd_ptr);
+int create_account();
+int disconnect();
 
 request_function functions[] = {
         create_account,
@@ -76,12 +76,13 @@ int prompt_user_for_parameter(const char* prompt, char* result);
 
 
 // Fonctions de communication réseau
-int init_connection(const struct hostent* server, int server_port);
+int init_connection(const struct hostent* server, unsigned int server_port);
 int send_message(int sockfd, const char* message);
 json_object* get_response_object(int sockfd);
 int check_response(json_object* response, unsigned int request_id);
 int get_response_result(int sockfd, unsigned int id, json_object** result);
 
 void usage();
+void force_quit();
 
 #endif //PROJET_RSA_DEDONATO_JOLY_CLIENT_H

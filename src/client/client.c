@@ -12,10 +12,12 @@
 #include "client.h"
 
 #include <json.h>
+#include <signal.h>
 
 #define TERM_WIDTH 120
 
 int connected = 0;
+int sockfd;
 
 /**
  * Fonction de requête précisant que la commande voulue n'est pas encore implémentée
@@ -26,7 +28,7 @@ int not_implemented() {
     return 1;
 }
 
-int create_account(int sockfd) {
+int create_account() {
     // Création de la requête
     json_object* request = create_request("create_account");
     const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
@@ -70,7 +72,7 @@ int create_account(int sockfd) {
  * @param sockfd_ptr
  * @return
  */
-int disconnect(int sockfd) {
+int disconnect() {
     close(sockfd);
     exit(0);
 }
@@ -221,7 +223,7 @@ request_function get_function(unsigned int user_input) {
  * @param server_port port du serveur
  * @return le descripteur de fichier de la socket à utiliser
  */
-int init_connection(const struct hostent* server, int server_port) {
+int init_connection(const struct hostent* server, unsigned int server_port) {
     //socket file descriptor
     int sockfd = -1;
 
@@ -235,7 +237,7 @@ int init_connection(const struct hostent* server, int server_port) {
     memset(&server_info, 0, sizeof(struct sockaddr_in));
 
     server_info.sin_family = AF_INET;
-    server_info.sin_port = htons(server_port);
+    server_info.sin_port = htons((uint16_t) server_port);
     server_info.sin_addr = *((struct in_addr*) server->h_addr);
 
 
@@ -285,7 +287,7 @@ json_object* get_response_object(int sockfd) {
         buf[receive_data_size] = '\0';
 
         // parsing et récupération des erreurs éventuelles
-        response = json_tokener_parse_ex(tokener, buf, receive_data_size);
+        response = json_tokener_parse_ex(tokener, buf, (int) receive_data_size);
         error = json_tokener_get_error(tokener);
 
     } while (response == NULL && error == json_tokener_continue);
@@ -325,6 +327,11 @@ int get_response_result(int sockfd, unsigned int id, json_object** result) {
 
 int main(int argc, char* argv[]) {
 
+    struct sigaction nvt;
+    memset(&nvt, 0, sizeof(nvt));
+    nvt.sa_handler = force_quit;
+    sigaction(SIGINT, &nvt, NULL);
+
     unsigned int srv_port = DEFAULT_PORT;
 
     if (argc < 2) {
@@ -346,7 +353,7 @@ int main(int argc, char* argv[]) {
     }
 
 
-    int sockfd = init_connection(server, srv_port);
+    sockfd = init_connection(server, srv_port);
 
 
     while (1) {
@@ -355,7 +362,7 @@ int main(int argc, char* argv[]) {
         request_function function = get_function(command);
 
         // Appel de la fonction
-        int return_code = function(sockfd);
+        int return_code = function();
         if (return_code != 0) {
             exit(return_code);
         }
@@ -369,4 +376,10 @@ int main(int argc, char* argv[]) {
 
 void usage() {
     printf("usage : client IP_du_serveur [port_du_serveur]\n");
+}
+
+void force_quit(){
+    printf("\nFermeture propre de la connexion\n");
+    close(sockfd);
+    exit(0);
 }
