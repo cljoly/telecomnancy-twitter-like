@@ -76,7 +76,7 @@ int prompt_user_for_parameter(const char* prompt, char* result);
 
 
 // Fonctions de communication réseau
-int init_connection(const struct hostent* server);
+int init_connection(const struct hostent* server, int server_port);
 int send_message(int sockfd, const char* message);
 json_object* get_response_object(int sockfd);
 int check_response(json_object* response, unsigned int request_id);

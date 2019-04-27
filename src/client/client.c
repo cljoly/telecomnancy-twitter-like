@@ -217,10 +217,11 @@ request_function get_function(unsigned int user_input) {
 
 /**
  * Initialise la connection au serveur donné
- * @param server
+ * @param server structure du serveur
+ * @param server_port port du serveur
  * @return le descripteur de fichier de la socket à utiliser
  */
-int init_connection(const struct hostent* server) {
+int init_connection(const struct hostent* server, int server_port) {
     //socket file descriptor
     int sockfd = -1;
 
@@ -234,7 +235,7 @@ int init_connection(const struct hostent* server) {
     memset(&server_info, 0, sizeof(struct sockaddr_in));
 
     server_info.sin_family = AF_INET;
-    server_info.sin_port = htons(DEFAULT_PORT);
+    server_info.sin_port = htons(server_port);
     server_info.sin_addr = *((struct in_addr*) server->h_addr);
 
 
@@ -324,9 +325,18 @@ int get_response_result(int sockfd, unsigned int id, json_object** result) {
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 2) {
+    unsigned int srv_port = DEFAULT_PORT;
+
+    if (argc < 2) {
         usage();
         exit(1);
+    } else if (argc == 3){
+        char* endptr;
+        srv_port = (unsigned int) strtoul(argv[2], &endptr, 10);
+        if (endptr == argv[2]) {
+            usage();
+            exit(1);
+        }
     }
 
     struct hostent* server = NULL;
@@ -336,12 +346,12 @@ int main(int argc, char* argv[]) {
     }
 
 
-    int sockfd = init_connection(server);
+    int sockfd = init_connection(server, srv_port);
 
 
     while (1) {
         // récupération de la commande utilisateur
-        int command = prompt_user();
+        unsigned int command = prompt_user();
         request_function function = get_function(command);
 
         // Appel de la fonction
@@ -358,5 +368,5 @@ int main(int argc, char* argv[]) {
 
 
 void usage() {
-    printf("usage : client IP_du_serveur\n");
+    printf("usage : client IP_du_serveur [port_du_serveur]\n");
 }
