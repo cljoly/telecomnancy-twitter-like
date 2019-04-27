@@ -4,7 +4,7 @@
 
 #include "const.h"
 
-#include <db.h>
+#include "db.h"
 
 static int empty_callback(void *NotUsed, int argc, char **argv, char **azColName){
   printf("NotUsed: %p\n", NotUsed);
