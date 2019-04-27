@@ -16,8 +16,8 @@
 
 #define TERM_WIDTH 120
 
-int connected = 0;
-int sockfd;
+static int connected = 0;
+static int sockfd;
 
 /**
  * Fonction de requête précisant que la commande voulue n'est pas encore implémentée

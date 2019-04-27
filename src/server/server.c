@@ -17,10 +17,8 @@ int main(int argc, char *argv[]) {
   int sockfd=3;
   int newsockfd;
   int childpid;
-  int tab_clients[FDSET_SIZE];
-  for (int i = 0; i < FDSET_SIZE; i++) {
-    tab_clients[i]=-1;
-  }
+  int tab_clients[FDSET_SIZE_CLIENT];
+  memset(tab_clients, -1, sizeof(tab_clients));
   struct sockaddr_in serv_addr;
   struct sockaddr_in cli_addr;
   socklen_t clilen;
@@ -57,7 +55,7 @@ int main(int argc, char *argv[]) {
   // Paramètrer le nombre de connexion "pending"
   if (listen(sockfd, SOMAXCONN) < 0) {
     perror("servmulti : erreur listen");
-    exit(1);
+    exit(3);
   }
   fprintf(stderr, "listen, max %i\n", SOMAXCONN);
 
@@ -85,14 +83,15 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "accept, socket: %i\n", newsockfd);
       if (newsockfd < 0) {
         perror("servmulti : erreur accept");
-        exit(1);
+        exit(4);
       }
 
       // Recherche d’une place libre dans le tableau
       int i = 0;
-      while ((i < FD_SETSIZE) && (tab_clients[i] >= 0)) i++;
-      if (i == FD_SETSIZE) {
-        exit(1);
+      while ((i < FDSET_SIZE_CLIENT) && (tab_clients[i] != -1)) i++;
+      if (i == FDSET_SIZE_CLIENT) {
+        fprintf(stderr, "Plus de place libre pour un nouveau client\n");
+        exit(5);
       }
       fprintf(stderr, "place libre: %i\n", i);
 
@@ -113,14 +112,14 @@ int main(int argc, char *argv[]) {
     // Parcourir le tableau des clients connectés
     int i = 0;
     int sock_client;
-    while ((nbfd > 0) && (i < FDSET_SIZE)) {
+    while ((nbfd > 0) && (i < FDSET_SIZE_CLIENT)) {
       sock_client = tab_clients[i];
       if ((sock_client >= 0) && (FD_ISSET (sock_client, &pset))) {
         FD_CLR(sock_client, &pset);
         // Le client a envoyé une donnée, la traiter
         if ((childpid = fork()) < 0) {
           perror("server: fork error");
-          exit(1);
+          exit(6);
         } else if (childpid == 0) { // Fils
           fprintf(stderr, "Forked %i, sock_client %i\n", getpid(), sock_client);
           close(sockfd);
@@ -133,11 +132,11 @@ int main(int argc, char *argv[]) {
             dispatch_result = dispatch_request(newsockfd);
           }
           fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
-        close(sock_client);
+          close(sock_client);
           exit(0);
         }
-          // Fermeture socket, désenregistrement du client
-          fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
+        // Fermeture socket, désenregistrement du client
+        fprintf(stderr, "%i: Fermeture de la connexion au client %i…\n", getpid(), i);
         close(sock_client);
         tab_clients[i]=-1;
         FD_CLR(sock_client, &rset);
