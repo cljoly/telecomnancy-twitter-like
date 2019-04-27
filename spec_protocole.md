@@ -74,7 +74,7 @@ Une requête doit avoir le format suivant :
 | `params` | Paramètres de la méthode, nommés ou non, voir plus loin |
 | `id` | Champs généré par le client, unique pour une requête. Il permet au client d’associer la réponse à la requête initiale |
 
-Une réponse correcte à une requ^ete doit avoir le format suivant :
+Une réponse correcte à une requête doit avoir le format suivant :
 
 | Champs | Rôle |
 |----:|:---|
@@ -83,7 +83,7 @@ Une réponse correcte à une requ^ete doit avoir le format suivant :
 | `id` | Comme précédemment |
 
 
-Une réponse d'erreur à une requ^ete doit avoir le format suivant :
+Une réponse d'erreur à une requête doit avoir le format suivant :
 
 | Champs | Rôle |
 |----:|:---|
