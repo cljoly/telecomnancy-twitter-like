@@ -79,7 +79,7 @@ Une réponse correcte à une requête doit avoir le format suivant :
 | Champs | Rôle |
 |----:|:---|
 | `result` | Nom de la méthode réalisée avec succès |
-| `param` | Objet contenant les informations de la réponse |
+| `params` | Objet contenant les informations de la réponse |
 | `id` | Comme précédemment |
 
 
