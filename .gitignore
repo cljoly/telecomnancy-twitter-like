@@ -208,3 +208,7 @@ tags
 [._]*.un~
 
 CMakeLists.txt
+
+# Base de donnée du serveur
+*.sqlite3
+
