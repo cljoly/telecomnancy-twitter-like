@@ -52,15 +52,15 @@ Utilisateur qui suit un autre utilisateur. Un abonné recevra tous les gazouilli
 
 
 ## Forme des APDU
-Les APDU seront codés avec le format binaire msgpack[^msgpack]. Il présente l’avantage d’être compact, 
+Pour coder les APDU, nous avons tout d’abord envisagé d’utiliser le format binaire msgpack[^msgpack]. Il présente l’avantage d’être compact, 
 tout en étant relativement facile à déboguer, puisqu’il peut être converti dans les deux sens en JSON[^json].
 
-Après réflexion, nous décidons de travailler directement avec un format de données en JSON, dans un souci de simplicité de débuggage.
-C'est un format moins compact mais qui peut ^etre débuggé directement (sans avoir à être converti). 
+Cependant, après réflexion, nous avons décidé de travailler directement avec un format de données JSON, dans un souci de simplicité de débuggage.
+C'est un format moins compact mais qui peut être débuggé directement (sans avoir à être converti). 
 
 La spécification des requêtes est inspirée du JSON-RPC[^jrpc].
 
-La taille maximum d’une APDU est de 1500 octets.
+La taille maximum d’une APDU est de **1500 octets**.
 
 ### Format du dialogue client/serveur
 #### Requêtes
