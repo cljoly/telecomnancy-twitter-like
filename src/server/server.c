@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
     // Parcourir le tableau des clients connectés
     int i = 0;
     int sock_client;
-    while ((nbfd > 0) && (i <= FDSET_SIZE)) {
+    while ((nbfd > 0) && (i < FDSET_SIZE)) {
       sock_client = tab_clients[i];
       if ((sock_client >= 0) && (FD_ISSET (sock_client, &pset))) {
         FD_CLR(sock_client, &pset);
