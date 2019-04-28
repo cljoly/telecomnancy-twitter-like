@@ -35,7 +35,7 @@ int number_of_row_callback(void *nb_row, int argc, char **argv, char **colName) 
 
 
 /**********************************************************************
-*                       Méthode create_content                       *
+*                     Méthode create_account                         *
 **********************************************************************/
 
 /**
@@ -72,7 +72,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   sprintf(stmt,
       "INSERT INTO user (name, password, cookie)"\
       "VALUES ('%s', '%s', ABS(RANDOM() %% %i));",
-      user, pass, UINT_MAX-1);
+      user, pass, INT_MAX-1);
   exec_db(db, stmt, NULL, NULL);
   memset(stmt, '\0', BUFSIZE);
 
@@ -97,6 +97,65 @@ json_object *create_account(json_object *req, sqlite3 *db) {
 }
 
 /**********************************************************************
+*                          Méthode connect                           *
+**********************************************************************/
+
+json_object *connect(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  const char *user = json_object_get_string(
+      json_object_object_get(params, "username"));
+  const char *pass = json_object_get_string(
+      json_object_object_get(params, "password"));
+
+  char stmt[BUFSIZE];
+  // Vérifions que le nom d’utilisateur existe
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s'", user);
+  int nb_user = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_user);
+  if (nb_user != 1) {
+    printf("Nom d’utilisateur incorrect\n");
+    return create_answer(req, SPEC_ERR_UNKNOWN_USERNAME);
+  }
+  
+  // Vérifions que le mot de passe soit correct
+  sprintf(stmt, "SELECT * FROM user WHERE password='%s'", pass);
+  int nb_pass = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_pass);
+  if (nb_pass != 1) {
+    printf("Mot de passe incorrecte\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_PASSWORD);
+  }
+
+  // Mise à jour du cookie
+  sprintf(stmt,
+      "UPDATE user SET cookie=ABS(RANDOM() %% %i)"\
+      "WHERE name='%s'",
+      INT_MAX-1, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Récupérons le cookie
+  int cookie = -1.;
+  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
+  exec_db(db, stmt, &cookie_callback, &cookie);
+  printf("COOKIE from callback: %i\n", cookie);
+
+  // Réponse
+  json_object *answer = create_answer(req, 0);
+  const char *answer_params[] = {
+    "cookie",
+    NULL
+  };
+  json_object *answer_values[] = {
+    json_object_new_int(cookie),
+    NULL
+  };
+  fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
+
+
+/**********************************************************************
 *              Pour ce qui n’est pas encore implémenté               *
 **********************************************************************/
 
@@ -113,11 +172,13 @@ json_object *not_implemented(json_object *req, sqlite3 *db) {
 // TODO Compléter ça avec les autres méthodes de la spec
 static char *method_names[] = {
   "create_account",
+  "connect",
   NULL
 };
 
 static method_func_p method_funcs[] = {
   &create_account,
+  &connect,
   &not_implemented
 };
 
