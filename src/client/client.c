@@ -9,23 +9,42 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <stdarg.h>
-
-#include "client.h"
-
+#include <limits.h>
 #include <json.h>
 #include <signal.h>
 
-#define TERM_WIDTH 120
+#include "client.h"
+#include "tools.h"
+#include "terminal.h"
+
 
 static int connected = 0;
 static int sockfd;
+
+static request_function functions[] = {
+        quit,
+        create_account,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        not_implemented,
+        disconnect
+};
+const unsigned int functions_count = sizeof(functions) / sizeof(request_function);
+
 
 /**
  * Fonction de requête précisant que la commande voulue n'est pas encore implémentée
  * @return 1
  */
 int not_implemented() {
-    printMessage(FATAL_ERROR, "Commande non implémentée");
+    print_message(FATAL_ERROR, "Commande non implémentée");
     return 1;
 }
 
@@ -52,14 +71,14 @@ int create_account() {
     int error_code = get_response_result(sockfd, request_id, &result_params);
     switch (error_code) {
         case 1: //erreur de notre doc : elle est gérée, on met l'error_code à 0 et on continue
-            printMessage(ERROR, "Ce nom d'utilisateur existe déjà.\n");
+            print_message(ERROR, "Ce nom d'utilisateur existe déjà.\n");
             error_code = 0;
             break;
         case 0:
-            printMessage(SUCCESS, "Compte créé!\n");
+            print_message(SUCCESS, "Compte créé!\n");
             break;
         default:
-            printMessage(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -71,7 +90,6 @@ int create_account() {
 /**
  * Ferme la socket et quitte le programme.
  * TODO: déconnexion propre
- * @param sockfd_ptr
  * @return
  */
 int disconnect() {
@@ -79,6 +97,14 @@ int disconnect() {
     exit(0);
 }
 
+/**
+ * Ferme la socket et quitte le programme
+ * @return
+ */
+int quit(){
+    close(sockfd);
+    exit(0);
+}
 
 /**
  * Fonction générique préparant un object JSON de requête avec un identifiant unique.
@@ -115,137 +141,7 @@ int fill_request(json_object* request, const char** params_name) {
 }
 
 
-void clearAllTerminal() {
-    printf("\e[1;1H\e[2J");
-}
 
-void clearTerminalExceptHeader() {
-    printf("\033[7;1H");
-}
-
-void print_menu() {
-    clearTerminalExceptHeader();
-
-    // get terminal info
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
-
-    unsigned int first_command_index = 0;
-    unsigned int last_command_index = 1;
-    if (connected) {
-        first_command_index = 2;
-        last_command_index = commands_count - 1;
-    }
-
-    // print a line
-    for (unsigned int j = 0; j < w.ws_col; j++) {
-        printf("-");
-    }
-    printf("\n");
-    unsigned int printed_line_chars = 0;
-    for (unsigned int i = first_command_index; i <= last_command_index; i++) {
-        printed_line_chars += 5 + strlen(commands[i]);
-        printf("%2d - %s", i - connected, commands[i]);
-
-        // S'il faut encore afficher une commande
-        if (i + 1 < commands_count) {
-            // S'il y a la place pour l'afficher
-            if (printed_line_chars + 4 + 5 + strlen(commands[i + 1]) < w.ws_col) {
-                printf("\t");
-
-                // Ajout de la longueur de la tabulation
-                while (printed_line_chars % 4 != 0) {
-                    printed_line_chars++;
-                }
-            } else {
-                // Sinon, nouvelle ligne
-                printf("\n");
-                printed_line_chars = 0;
-            }
-        }
-    }
-    printf("\n");
-    // print a line
-    for (unsigned int j = 0; j < w.ws_col; j++) {
-        printf("-");
-    }
-    printf("\n\n");
-}
-
-void printMessage(message_type_t type, const char* format, ...) {
-    printf("\033[2;1H");
-    switch(type) {
-        case SUCCESS:
-            // print in green
-            printf("\033[1;32m");
-        break;
-        case ERROR:
-            // print in yellow
-            printf("\033[01;33m");
-            break;
-        case FATAL_ERROR:
-            // print in red
-            printf("\033[1;31m");
-        break;
-        case DEBUG:
-            // print in grey
-            printf("\033[1;0m");
-        break;
-        case INFO:
-        default:
-            // print in blue
-            printf("\033[0;34m");
-        break;
-    }
-    va_list args;
-    va_start(args, format);
-    printf(format, args);
-    va_end(args);
-    printf("\033[0m");
-}
-
-/**
- * Demande à l'utilisateur l'action à effectuer et la retourne
- * Affiche le menu, en appellant \seealso print_menu()
- * @return le numéro de la commande demandée
- */
-unsigned int prompt_user() {
-    print_menu();
-    // prompt
-    printf("> Quelle action voulez-vous effectuer ? ");
-
-    // Lecture des données
-    char buf[3] = {'\0'};
-    scanf("%s", buf);
-
-    // conversion et test
-    char* endptr;
-    unsigned int input = (unsigned int) strtoul(buf, &endptr, 10);
-    if (endptr == buf) {
-        return -1; //TODO : trouver mieux que -1 ?
-    } else if (input > commands_count) {
-        fprintf(stderr, "Commande invalide\n");
-        return -1;
-    } else {
-        return input;
-    }
-}
-
-/**
- * Demande la valeur d'un paramètre d'une requête à l'utilisateur
- * @param prompt Le message affiché pour expliquer la demande
- * @param result L'entrée tappée par l'utilisateur
- * @return 1 en cas d'erreur, 0 sinon
- */
-int prompt_user_for_parameter(const char* prompt, char* result) {
-    printf("%s : ", prompt);
-    int scanned_items = scanf("%s", result);
-    if (scanned_items != 1) {
-        return 1;
-    }
-    return 0;
-}
 
 /**
  * Retourne la fonction correspondant au numéro donné
@@ -409,13 +305,16 @@ int main(int argc, char* argv[]) {
 
     sockfd = init_connection(server, srv_port);
 
-    clearAllTerminal();
+    clear_all_terminal();
     printTitle();
     while (1) {
         // récupération de la commande utilisateur
-        unsigned int command = prompt_user();
+        unsigned int command = prompt_user(connected);
+        if (command == UINT_MAX){
+            continue;
+        }
         // Nettoyage du terminal, changement de mode
-        clearAllTerminal();
+        clear_all_terminal();
 
         request_function function = get_function(command);
 
