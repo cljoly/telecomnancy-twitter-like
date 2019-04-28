@@ -1,7 +1,7 @@
 #ifndef JSON_COMMUNICATION_H_8ZET1UXD
 #define JSON_COMMUNICATION_H_8ZET1UXD
 
-#include <json.h>
+#include <json-c/json.h>
 
 // Module contenant les fonctions utiles pour la communication client/serveur
 // en JSON

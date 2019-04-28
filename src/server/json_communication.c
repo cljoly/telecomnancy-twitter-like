@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <json.h>
+#include <json-c/json.h>
 
 #include "const.h"
 

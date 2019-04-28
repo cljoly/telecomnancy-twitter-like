@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h>
-#include <json.h>
+#include <json-c/json.h>
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
