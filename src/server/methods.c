@@ -4,6 +4,7 @@
 #include <json.h>
 #include <string.h>
 #include <assert.h>
+#include <limits.h>
 
 #include "methods.h"
 
@@ -71,7 +72,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   sprintf(stmt,
       "INSERT INTO user (name, password, cookie)"\
       "VALUES ('%s', '%s', ABS(RANDOM() %% %i));",
-      user, pass, MAXVALUEINT-1);
+      user, pass, UINT_MAX-1);
   exec_db(db, stmt, NULL, NULL);
   memset(stmt, '\0', BUFSIZE);
 

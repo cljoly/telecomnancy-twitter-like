@@ -1,7 +1,6 @@
 #ifndef CONST_H_KIGNQHQ7
 #define CONST_H_KIGNQHQ7
 
-#define MAXVALUEINT 2147483647
 #include "spec_const.h"
 
 #define BUFSIZE 1500
