@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <stdarg.h>
 
 #include "client.h"
 
@@ -24,7 +25,7 @@ static int sockfd;
  * @return 1
  */
 int not_implemented() {
-    fprintf(stderr, "Commande non implémentée\n");
+    printMessage(FATAL_ERROR, "Commande non implémentée");
     return 1;
 }
 
@@ -37,6 +38,7 @@ int create_account() {
             "password",
             NULL
     };
+    printf("Création d'un compte\n\n");
     fill_request(request, params);
     if (send_message(sockfd, json_object_to_json_string(request)) != 0) {
         return 1;
@@ -50,14 +52,14 @@ int create_account() {
     int error_code = get_response_result(sockfd, request_id, &result_params);
     switch (error_code) {
         case 1: //erreur de notre doc : elle est gérée, on met l'error_code à 0 et on continue
-            printf("Ce nom d'utilisateur existe déjà.\n");
+            printMessage(ERROR, "Ce nom d'utilisateur existe déjà.\n");
             error_code = 0;
             break;
         case 0:
-            printf("Compte créé!\n");
+            printMessage(SUCCESS, "Compte créé!\n");
             break;
         default:
-            fprintf(stderr, "Code d'erreur inconnu: %d\n.", error_code);
+            printMessage(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -113,12 +115,20 @@ int fill_request(json_object* request, const char** params_name) {
 }
 
 
-void clearTerminal() {
+void clearAllTerminal() {
     printf("\e[1;1H\e[2J");
 }
 
+void clearTerminalExceptHeader() {
+    printf("\033[7;1H");
+}
+
 void print_menu() {
-    clearTerminal();
+    clearTerminalExceptHeader();
+
+    // get terminal info
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
 
     unsigned int first_command_index = 0;
@@ -128,19 +138,20 @@ void print_menu() {
         last_command_index = commands_count - 1;
     }
 
+    // print a line
+    for (unsigned int j = 0; j < w.ws_col; j++) {
+        printf("-");
+    }
+    printf("\n");
     unsigned int printed_line_chars = 0;
-    unsigned int longest_line_chars = 0;
     for (unsigned int i = first_command_index; i <= last_command_index; i++) {
         printed_line_chars += 5 + strlen(commands[i]);
-        if (printed_line_chars > longest_line_chars) {
-            longest_line_chars = printed_line_chars;
-        }
         printf("%2d - %s", i - connected, commands[i]);
 
         // S'il faut encore afficher une commande
         if (i + 1 < commands_count) {
             // S'il y a la place pour l'afficher
-            if (printed_line_chars + 4 + 5 + strlen(commands[i + 1]) < TERM_WIDTH) {
+            if (printed_line_chars + 4 + 5 + strlen(commands[i + 1]) < w.ws_col) {
                 printf("\t");
 
                 // Ajout de la longueur de la tabulation
@@ -156,10 +167,42 @@ void print_menu() {
     }
     printf("\n");
     // print a line
-    for (unsigned int j = 0; j < longest_line_chars; j++) {
+    for (unsigned int j = 0; j < w.ws_col; j++) {
         printf("-");
     }
     printf("\n\n");
+}
+
+void printMessage(message_type_t type, const char* format, ...) {
+    printf("\033[2;1H");
+    switch(type) {
+        case SUCCESS:
+            // print in green
+            printf("\033[1;32m");
+        break;
+        case ERROR:
+            // print in yellow
+            printf("\033[01;33m");
+            break;
+        case FATAL_ERROR:
+            // print in red
+            printf("\033[1;31m");
+        break;
+        case DEBUG:
+            // print in grey
+            printf("\033[1;0m");
+        break;
+        case INFO:
+        default:
+            // print in blue
+            printf("\033[0;34m");
+        break;
+    }
+    va_list args;
+    va_start(args, format);
+    printf(format, args);
+    va_end(args);
+    printf("\033[0m");
 }
 
 /**
@@ -324,6 +367,17 @@ int get_response_result(int sockfd, unsigned int id, json_object** result) {
     }
 }
 
+void printTitle() {
+    printf("\033[0;36m");
+    printf(" __  __      _____          _ _   _\n");
+    printf("|  \\/  |_   |_   _|_      _(_) |_| |_ ___ _ __\n");
+    printf("| |\\/| | | | || | \\ \\ /\\ / / | __| __/ _ \\ '__|\n");
+    printf("| |  | | |_| || |  \\ V  V /| | |_| ||  __/ |\n");
+    printf("|_|  |_|\\__, ||_|   \\_/\\_/ |_|\\__|\\__\\___|_|\n");
+    printf("        |___/\n");
+    printf("\033[0m");
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -355,10 +409,14 @@ int main(int argc, char* argv[]) {
 
     sockfd = init_connection(server, srv_port);
 
-
+    clearAllTerminal();
+    printTitle();
     while (1) {
         // récupération de la commande utilisateur
         unsigned int command = prompt_user();
+        // Nettoyage du terminal, changement de mode
+        clearAllTerminal();
+
         request_function function = get_function(command);
 
         // Appel de la fonction

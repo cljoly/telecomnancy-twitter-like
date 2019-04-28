@@ -67,10 +67,12 @@ int fill_request(json_object* request, const char** params_name);
 
 
 
-
+typedef enum message_type_t {SUCCESS, INFO, ERROR, FATAL_ERROR, DEBUG} message_type_t;
 // Fonctions d'affichage
-void clearTerminal();
+void clearAllTerminal();
+void clearTerminalExceptHeader();
 void print_menu();
+void printMessage(message_type_t type, const char* format, ...);
 unsigned int prompt_user();
 int prompt_user_for_parameter(const char* prompt, char* result);
 
