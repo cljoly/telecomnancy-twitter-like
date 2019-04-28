@@ -2,7 +2,7 @@
 CC          := gcc
 
 #The Target Binary Program
-TARGET      := server
+TARGET      := server db.sqlite3
 
 #The Directories, Source, Objects, Binary
 SRCDIR      := .
@@ -55,4 +55,8 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 
 #Non-File Targets
 .PHONY: all remake clean cleaner directories
+
+# Script d’initialisation de la base de donnée
+db.sqlite3:
+	./init_db.sh
 
