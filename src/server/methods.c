@@ -12,6 +12,28 @@
 #include "json_communication.h"
 
 /**********************************************************************
+*            Callback generiques pour les requêtes SELECT            *
+**********************************************************************/
+
+/**
+ *  Renvoie le nombre de correspondances trouvées.
+ *  Bien mettre nb_row à 0 avant d’appeler le callback
+ */
+int number_of_row_callback(void *nb_row, int argc, char **argv, char **colName) {
+  int *n = (int *)nb_row;
+  // Comme la fonction callback est appelée à chaque ligne, on compte le nombre de ligne en comptant le nombre d’appel
+  printf("number_of_row_callback: nb_row: %i\n", *n);
+  *n = *n+1;
+  printf("=== number_of_row_callback: nb_row: %i\n", *n);
+  // Affichage du contenu des lignes pour debuggage
+	for(int i=0; i<argc; i++) {
+		printf("%s = %s\n", colName[i], argv[i] ? argv[i] : "NULL");
+	}
+  return 0;
+}
+
+
+/**********************************************************************
 *                       Méthode create_content                       *
 **********************************************************************/
 
@@ -34,9 +56,18 @@ json_object *create_account(json_object *req, sqlite3 *db) {
       json_object_object_get(params, "password"));
 
   char stmt[BUFSIZE];
-  // Pas de vérification de l’unicité du cookie même si la base de donnée le
-  // vérifie : la proba de collision est faible à cause de la
-  // taille du nombre aléatoire fournit. On peut insérer 
+  // Vérifions que le nom d’utilisateur soit libre
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s'", user);
+  int nb_user = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_user);
+  if (nb_user>0) {
+    return create_answer(req, 1);
+  }
+
+  // Insérons le nom d’utilisateur
+  /* Pas de vérification de l’unicité du cookie même si la base de donnée le
+     vérifie : la proba de collision est faible à cause de la
+     taille du nombre aléatoire fournit (jusqu’à une dizaine de clients). */
   sprintf(stmt,
       "INSERT INTO user (name, password, cookie)"\
       "VALUES ('%s', '%s', ABS(RANDOM() %% %i));",
@@ -44,11 +75,13 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   exec_db(db, stmt, NULL, NULL);
   memset(stmt, '\0', BUFSIZE);
 
+  // Récupérons le cookie
   int cookie = -1.;
   sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
 
+  // Réponse
   json_object *answer = create_answer(req, 0);
   const char *answer_params[] = {
     "cookie",

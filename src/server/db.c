@@ -7,11 +7,12 @@
 #include <db.h>
 
 static int empty_callback(void *NotUsed, int argc, char **argv, char **azColName){
+	printf("begin empty_callback\n");
   printf("NotUsed: %p\n", NotUsed);
 	for(int i=0; i<argc; i++) {
 		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
 	}
-	printf("\n");
+	printf("end empty_callback\n");
 	return 0;
 }
 
@@ -51,8 +52,9 @@ void close_db(sqlite3 *db) {
 int exec_db(sqlite3 *db, const char *statement, int (*callback)(void*,int,char**,char**), void *value) {
 	printf("%i: Exécution de la requête '%s'\n", getpid(), statement);
 	char *zErrMsg = 0;
-  int (*cb)(void*,int,char**,char**) = empty_callback;
+  int (*cb)(void*,int,char**,char**) = &empty_callback;
   if (callback != NULL) {
+    printf("%i: Callback personalisé %p\n", getpid(), callback);
     cb = callback;
   }
 	int rc = sqlite3_exec(db, statement, cb, value, &zErrMsg);
