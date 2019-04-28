@@ -50,10 +50,14 @@ json_object *create_answer(json_object* request, int error_code) {
  * @return Renvoie 0 si l’objet est bien une réponse, 1 si c’est en fait une erreur et 2 si c’est autre chose
  */
 int is_not_answer(json_object *o) {
-    // TODO Implement this
-    printf("Not implemented: is_not_answer (%s)\n",
-        json_object_to_json_string(o));
-    return 0;
+    if (json_object_object_get(o, "result") != NULL) {
+      return 0;
+    } else if (json_object_object_get(o, "error") != NULL) {
+      printf("is_not_answer: est une erreur\n");
+      return 1;
+    }
+    printf("is_not_answer: est autre chose\n");
+    return 2;
 }
 
 /**
