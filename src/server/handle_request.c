@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <json.h>
 #include <sqlite3.h>
+#include <unistd.h>
 
 #include "handle_request.h"
 #include "const.h"
