@@ -1,27 +1,57 @@
-CFLAGS=-Wall -Werror -Wextra $(shell pkg-config --cflags json-c)
-LIBFLAGS=-ldl -lpthread $(shell pkg-config --libs json-c)
-DEBUGFLAGS=
+#Compiler and Linker
+CC          := gcc
 
-all: client
+#The Target Binary Program
+TARGET      := client
 
-debug: DEBUGFLAGS=-g -DDEBUG
-debug: all
-CC=gcc $(DEBUGFLAGS)
+#The Directories, Source, Objects, Binary
+SRCDIR      := .
+BUILDDIR    := obj
+TARGETDIR   := .
+SRCEXT      := c
+OBJEXT      := o
 
-%.o: %.c %.h
-	$(CC) -c -o $@ $< $(CFLAGS)
+#Flags and Libraries
+CFLAGS      := -Wall -Werror -Wextra -Wformat -g $(shell pkg-config --cflags json-c)
+LIB         := $(shell pkg-config --libs json-c)
 
-client: client.o
-	$(CC) -o $@ $^ $(LIBFLAGS)
+#---------------------------------------------------------------------------------
+#DO NOT EDIT BELOW THIS LINE
+#---------------------------------------------------------------------------------
+SOURCES     := $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
+OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
+#Default Make
+all: directories $(TARGET)
+
+#test
+test: all test.sh
+	bash test.sh $(TARGETDIR)/$(TARGET)
+
+#Remake
+remake: cleaner all
+
+#Make the Directories
+directories:
+	@mkdir -p $(TARGETDIR)
+	@mkdir -p $(BUILDDIR)
+
+#Clean only Objecst
 clean:
-	rm -f *.o
+	@$(RM) -rf $(BUILDDIR)
 
-clean2: clean
-	rm -f client
+#Full Clean, Objects and Binaries
+cleaner: clean
+	@$(RM) $(TARGETDIR)/$(TARGET)
 
-test: debug
-	./test.sh
+#Link
+$(TARGET): $(OBJECTS)
+	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
 
-valgrind: debug
-	./test.sh valgrind
+#Compile
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+#Non-File Targets
+.PHONY: all remake clean cleaner directories
