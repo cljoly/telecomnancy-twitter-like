@@ -13,23 +13,27 @@
 
 // Attribut effectivement la requête à la fonction adéquate
 // Renvoie la réponse qui sera faîte au client
-json_object *actual_dispatch(char *msg) {
+json_object *actual_dispatch(char *msg, sqlite3 *db) {
   // Parser le message JSON envoyé par le client
   json_object *req = get_request_object(msg);
   json_object *a = NULL;
   printf("%d: JSON récupéré : %s \n", getpid(),
       json_object_to_json_string(req));
-  if (req == NULL) {
+  json_object *method_name_obj = json_object_object_get(req, "request");
+  const char *method_name = json_object_get_string(method_name_obj);
+  if (req == NULL || method_name_obj == NULL) {
     fprintf(stderr, "Erreur en parsant le JSON reçu\n");
     a = create_answer(req, SPEC_ERR_FORMAT);
     return a;
   }
-  a = create_answer(req, 0);
-  // TODO Appel méthode,
-  // Renvoyer retour de la méthode ou erreur interne si NULL
-  // libérer le json alloué
 
+  printf("method_name %s\n", method_name);
+  method_func_p mf = find_associate_method_func(method_name);
+  a = (*mf)(req, db);
+
+  // Libérer le json alloué
   json_object_put(req);
+
   if (a == NULL) {
     fprintf(stderr, "Erreur interne (a == NULL)\n");
     a = create_answer(req, SPEC_ERR_INTERNAL_SRV);
@@ -38,8 +42,6 @@ json_object *actual_dispatch(char *msg) {
 }
 
 int dispatch_request(int sockfd, sqlite3 *db) {
-  // TODO Supprimer ce printf
-  printf("db: %p", db);
 
   int nrcv;
   int nsnd;
@@ -56,7 +58,7 @@ int dispatch_request(int sockfd, sqlite3 *db) {
   printf("==>(%d) %s \n", getpid(), msg);
 
   // Traiter le message envoyé par le client
-  json_object *answer = actual_dispatch(msg);
+  json_object *answer = actual_dispatch(msg, db);
   if (answer == NULL) {
     // Ne devrait pas arriver, ce genre de cas est traité plus haut
     // normalement, renvoyer le code d’erreur interne
@@ -64,14 +66,21 @@ int dispatch_request(int sockfd, sqlite3 *db) {
   }
 
   // Répondre au client
-  const char * answer_string = json_object_to_json_string(answer);
+  const char *answer_string = json_object_to_json_string(answer);
+  int answer_string_len = strnlen(answer_string, BUFSIZE);
   printf("<==(%d) %s\n", getpid(), answer_string);
-  if ((nsnd = write(sockfd, answer_string, nrcv)) < 0) {
+  if ((nsnd = write(sockfd, answer_string, answer_string_len)) < 0) {
     perror("servmulti : writen error on socket");
     exit(9);
   }
   json_object_put(answer);
-  printf("nsnd = %d \n", nsnd);
+  if (nsnd != answer_string_len) {
+    fprintf(stderr, "ATTENTION : nsnd != answer_string_len, tout n’a pas été envoyé au client\n");
+  }
+  if ((nsnd = write(sockfd, "\n", 1)) < 0) {
+    perror("servmulti : writen error on socket");
+    exit(9);
+  }
   return nrcv;
 }
 
