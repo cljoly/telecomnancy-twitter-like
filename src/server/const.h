@@ -9,9 +9,6 @@
 
 #define DB_NAME "db.sqlite3"
 
-// TODO Déterminer pourquoi c’est ici
-void force_quit();
-
 // Codes d’erreur de la spec
 #define SPEC_ERR_FORMAT  10
 #define SPEC_ERR_INTERNAL_SRV  11

@@ -14,6 +14,7 @@
 #include "handle_request.h"
 #include "const.h"
 #include "db.h"
+#include "server.h"
 
 void usage() { printf("usage : servmulti numero_port_serveur\n"); }
 
