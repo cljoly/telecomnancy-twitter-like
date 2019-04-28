@@ -61,7 +61,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   int nb_user = 0;
   exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (nb_user>0) {
-    return create_answer(req, 1);
+    return create_answer(req, SPEC_ERR_DUPLICATE_USERNAME);
   }
 
   // Insérons le nom d’utilisateur
