@@ -2,7 +2,7 @@
 CC          := gcc
 
 #The Target Binary Program
-TARGET      := server db.sqlite3
+TARGET      := server
 
 #The Directories, Source, Objects, Binary
 SRCDIR      := .
@@ -22,7 +22,7 @@ SOURCES     := $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
 #Default Make
-all: directories $(TARGET)
+all: directories $(TARGET) db.sqlite3
 
 #test
 test: all test.sh
