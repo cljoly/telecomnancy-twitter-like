@@ -26,17 +26,20 @@ int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
   return 0;
 }
 
-/** Création d’un compte dans la base de données
- * @param jparam objet json contenant les paramètres de la méthode
- * @return 0 tout s’est bien passé, autre : code d’erreur de la spec
- */
-int create_account_old(char *user, char *pass, sqlite3 *db) {
+json_object *create_account(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  const char *user = json_object_get_string(
+      json_object_object_get(params, "username"));
+  const char *pass = json_object_get_string(
+      json_object_object_get(params, "password"));
+
   char stmt[BUFSIZE];
   // Pas de vérification de l’unicité du cookie même si la base de donnée le
   // vérifie : la proba de collision est faible à cause de la
   // taille du nombre aléatoire fournit. On peut insérer 
   sprintf(stmt,
-      "INSERT INTO user (name, password, cookie) VALUES ('%s', '%s', ABS(RANDOM() %% %i))",
+      "INSERT INTO user (name, password, cookie)"\
+      "VALUES ('%s', '%s', ABS(RANDOM() %% %i));",
       user, pass, MAXVALUEINT-1);
   exec_db(db, stmt, NULL, NULL);
   memset(stmt, '\0', BUFSIZE);
@@ -45,13 +48,18 @@ int create_account_old(char *user, char *pass, sqlite3 *db) {
   sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
-  return 0;
-}
 
-json_object *create_account(json_object *req, sqlite3 *db) {
-  // TODO Supprimer ce printf
-  printf("db: %p", db);
-  return create_answer(req, SPEC_ERR_NOT_IMPLEMENTED);
+  json_object *answer = create_answer(req, 0);
+  const char *answer_params[] = {
+    "cookie",
+    NULL
+  };
+  json_object *answer_values[] = {
+    json_object_new_int(cookie),
+    NULL
+  };
+  fill_answer(answer, answer_params, answer_values);
+  return answer;
 }
 
 /**********************************************************************
@@ -69,12 +77,12 @@ json_object *not_implemented(json_object *req, sqlite3 *db) {
 **********************************************************************/
 
 // TODO Compléter ça avec les autres méthodes de la spec
-char *method_names[] = {
+static char *method_names[] = {
   "create_account",
   NULL
 };
 
-method_func_p method_funcs[] = {
+static method_func_p method_funcs[] = {
   &create_account,
   &not_implemented
 };

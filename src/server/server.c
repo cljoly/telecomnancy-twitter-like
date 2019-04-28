@@ -135,8 +135,8 @@ int main(int argc, char *argv[]) {
           /* Si aucune donnée n’a été lue, c’est que le client veut fermer la
            * connexion (condition du while à 0) */
           while (dispatch_result != 0) {
-            printf("%i: DISPATCH_REQUEST %i\n", getpid(), dispatch_result);
             dispatch_result = dispatch_request(newsockfd, db);
+            printf("%i: dispatch_result: %i\n", getpid(), dispatch_result);
           }
           printf("%i: Fermeture de la connexion au client %i…\n", getpid(), i);
           close_db(db);
