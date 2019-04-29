@@ -436,7 +436,7 @@ Paramètres : aucun
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
-### Récupérer les messages destinés à un utilisateur `get_gazou`
+### Récupérer les messages destinés à l’utilisateur `get_gazou`
 
 Sens : Client - Serveur
 
@@ -445,7 +445,7 @@ Sens : Client - Serveur
 Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
-| `nb_gazou` | int | Nombre d’objets gazouillis à envoyer |
+| `nb_gazou` | int | Nombre d’objets gazouillis à recevoir |
 
 #### Retour sans erreur :
 
