@@ -13,7 +13,7 @@
 #include "json_communication.h"
 
 /**********************************************************************
-*            Callback generiques pour les requêtes SELECT            *
+*                  Callback pour les requêtes SELECT                 *
 **********************************************************************/
 
 /**
@@ -44,6 +44,17 @@ int username_callback(void *username, int argc, char **argv, char **colName) {
   return 0;
 }
 
+
+/**
+ *  Récupération du cookie depuis une requête select
+ */
+int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
+  int *c = (int *)cookie;
+  if (strcmp(colName[0], "cookie") != 0 || argc != 1)
+    printf("========== cookie_callback exécuté dans de mauvaises conditions");
+  *c = atoi(argv[0]);
+  return 0;
+}
 
 /**********************************************************************
 *                    Autres fonctions génériques                     *
@@ -85,17 +96,6 @@ int user_name_from_cookie(sqlite3 *db, int cookie, char *username) {
 *                     Méthode create_account                         *
 **********************************************************************/
 
-/**
- *  Récupération du cookie depuis une requête select
- */
-int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
-  int *c = (int *)cookie;
-  if (strcmp(colName[0], "cookie") != 0 || argc != 1)
-    printf("========== cookie_callback exécuté dans de mauvaises conditions");
-  *c = atoi(argv[0]);
-  return 0;
-}
-
 json_object *create_account(json_object *req, sqlite3 *db) {
   json_object *params = json_object_object_get(req, "params");
   const char *user = json_object_get_string(
@@ -124,7 +124,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   memset(stmt, '\0', BUFSIZE);
 
   // Récupérons le cookie
-  int cookie = -1.;
+  int cookie = -1;
   sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
@@ -177,7 +177,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
   new_random_cookie(db, user);
 
   // Récupérons le cookie
-  int cookie = -1.;
+  int cookie = -1;
   sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
