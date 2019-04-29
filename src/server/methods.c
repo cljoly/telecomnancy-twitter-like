@@ -33,6 +33,53 @@ int number_of_row_callback(void *nb_row, int argc, char **argv, char **colName) 
   return 0;
 }
 
+/**
+ *  Récupération du nom d’utilisateur dans une requête SELECT
+ */
+int username_callback(void *username, int argc, char **argv, char **colName) {
+  char *name = (char *)username;
+  if (strcmp(colName[0], "name") != 0 || argc != 1)
+    printf("========== username_callback exécuté dans de mauvaises conditions");
+  strcpy(name, argv[0]);
+  return 0;
+}
+
+
+/**********************************************************************
+*                    Autres fonctions génériques                     *
+**********************************************************************/
+
+void new_random_cookie(sqlite3 *db, const char *user) {
+  char stmt[BUFSIZE];
+  sprintf(stmt,
+      "UPDATE user SET cookie=ABS(RANDOM() %% %i)"\
+      "WHERE name='%s';",
+      INT_MAX-1, user);
+  exec_db(db, stmt, NULL, NULL);
+}
+
+/*
+ * Récupère le nom d’utilisateur associé au cookie
+ * @param user Est remplacé par le nom d’utilisateur trouvé, doit être de
+ * longueur USERNAME_MAXSIZE
+ * @return 1 si le cookie n’est pas trouvé (cookie invalide).
+ */
+int user_name_from_cookie(sqlite3 *db, int cookie, char *username) {
+  char retrieved_username[USERNAME_MAXSIZE] = { '\0' };
+  char stmt[BUFSIZE];
+  sprintf(stmt, "SELECT name FROM user WHERE cookie='%i' LIMIT 1",
+      cookie);
+  exec_db(db, stmt, &username_callback, &retrieved_username);
+  printf("username récupéré : %s\n", retrieved_username);
+  if (retrieved_username[0] == '\0') {
+    printf("Pas d’username récupéré\n");
+    return 1;
+  }
+  strncpy(username, retrieved_username, USERNAME_MAXSIZE);
+  printf("username : %s\n", username);
+  return 0;
+}
+
 
 /**********************************************************************
 *                     Méthode create_account                         *
@@ -126,13 +173,8 @@ json_object *connect(json_object *req, sqlite3 *db) {
     return create_answer(req, SPEC_ERR_INCORRECT_PASSWORD);
   }
 
-  // Mise à jour du cookie
-  sprintf(stmt,
-      "UPDATE user SET cookie=ABS(RANDOM() %% %i)"\
-      "WHERE name='%s'",
-      INT_MAX-1, user);
-  exec_db(db, stmt, NULL, NULL);
-  memset(stmt, '\0', BUFSIZE);
+  // Réinitialisation du cookie
+  new_random_cookie(db, user);
 
   // Récupérons le cookie
   int cookie = -1.;
@@ -151,6 +193,30 @@ json_object *connect(json_object *req, sqlite3 *db) {
     NULL
   };
   fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
+
+/**********************************************************************
+*                         Méthode disconnect                         *
+**********************************************************************/
+
+json_object *disconnect(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  // Vérifions que le cookie soit correct en récupérant l’utilisateur
+  char username[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, username);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  // Mise à jour du cookie, pour déconnecter
+  new_random_cookie(db, username);
+
+  json_object *answer = create_answer(req, 0);
   return answer;
 }
 
@@ -173,12 +239,14 @@ json_object *not_implemented(json_object *req, sqlite3 *db) {
 static char *method_names[] = {
   "create_account",
   "connect",
+  "disconnect",
   NULL
 };
 
 static method_func_p method_funcs[] = {
   &create_account,
   &connect,
+  &disconnect,
   &not_implemented
 };
 
