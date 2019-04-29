@@ -123,24 +123,8 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   exec_db(db, stmt, NULL, NULL);
   memset(stmt, '\0', BUFSIZE);
 
-  // Récupérons le cookie
-  int cookie = -1;
-  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s';", user);
-  exec_db(db, stmt, &cookie_callback, &cookie);
-  printf("COOKIE from callback: %i\n", cookie);
-
   // Réponse
-  json_object *answer = create_answer(req, 0);
-  const char *answer_params[] = {
-    "cookie",
-    NULL
-  };
-  json_object *answer_values[] = {
-    json_object_new_int(cookie),
-    NULL
-  };
-  fill_answer(answer, answer_params, answer_values);
-  return answer;
+  return create_answer(req, 0);
 }
 
 /**********************************************************************
