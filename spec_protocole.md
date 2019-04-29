@@ -218,6 +218,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `gazouilli` | Gazouilli | Objet de type Gazouilli |
+| `cookie` | int | Authentifie l’utilisateur |
 
 
 Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli.
@@ -246,6 +247,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `id_gazouilli` | entier | Identifiant unique du gazouilli |
+| `cookie` | int | Authentifie l’utilisateur |
 
 
 #### Retour sans erreur :
@@ -270,6 +272,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `username` | String | Nom d'utilisateur à suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 
 #### Retour sans erreur :
@@ -294,6 +297,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `tag` | String | Nom de la thématique à suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -317,6 +321,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `username` | String | Nom de l'utilisateur à ne plus suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -340,6 +345,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `tag` | String | Nom de la thématique à ne plus suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -366,6 +372,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_users` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs suivis |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -375,7 +382,11 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
+
 
 #### Retour sans erreur :
 
@@ -400,6 +411,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_followers` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs auquels on est abonné |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -409,7 +421,11 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
+
 
 #### Retour sans erreur :
 
