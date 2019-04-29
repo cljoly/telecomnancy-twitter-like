@@ -60,7 +60,7 @@ C'est un format moins compact mais qui peut être débuggé directement (sans av
 
 La spécification des requêtes est inspirée du JSON-RPC[^jrpc].
 
-La taille maximum d’une APDU est de **10000 octets**. En l’absence de
+La taille maximum d’une APDU est de **6000 octets**. En l’absence de
 paramètres utilisateurs particuliers, le port par défaut est le port **1234**.
 
 ### Format du dialogue client/serveur
