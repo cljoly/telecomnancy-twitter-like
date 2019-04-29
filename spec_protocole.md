@@ -60,7 +60,8 @@ C'est un format moins compact mais qui peut être débuggé directement (sans av
 
 La spécification des requêtes est inspirée du JSON-RPC[^jrpc].
 
-La taille maximum d’une APDU est de **1500 octets**.
+La taille maximum d’une APDU est de **6000 octets**. En l’absence de
+paramètres utilisateurs particuliers, le port par défaut est le port **1234**.
 
 ### Format du dialogue client/serveur
 #### Requêtes
@@ -125,7 +126,7 @@ Notes :
     - Le code `11` pour une erreur interne du côté serveur
     - Le code `12` pour une erreur interne du côté client
     - Le code `13` pour une erreur liée à une fonctionnalité non implémentée côté client ou serveur.
-
+    - Le code `14` pour une erreur liée à un cookie invalide.
 
 
 ## Objets généraux
@@ -218,6 +219,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `gazouilli` | Gazouilli | Objet de type Gazouilli |
+| `cookie` | int | Authentifie l’utilisateur |
 
 
 Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli.
@@ -246,6 +248,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `id_gazouilli` | entier | Identifiant unique du gazouilli |
+| `cookie` | int | Authentifie l’utilisateur |
 
 
 #### Retour sans erreur :
@@ -270,6 +273,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `username` | String | Nom d'utilisateur à suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 
 #### Retour sans erreur :
@@ -294,6 +298,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `tag` | String | Nom de la thématique à suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -317,6 +322,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `username` | String | Nom de l'utilisateur à ne plus suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -340,6 +346,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `tag` | String | Nom de la thématique à ne plus suivre |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -366,6 +373,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_users` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs suivis |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -375,7 +383,11 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
+
 
 #### Retour sans erreur :
 
@@ -400,6 +412,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_followers` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs auquels on est abonné |
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -409,7 +422,11 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
+
 
 #### Retour sans erreur :
 
@@ -419,16 +436,16 @@ Paramètres : aucun
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
-### Transférer un message reçu à tous les abonnés de l'auteur du gazouilli et aux utilisateurs suivants les thématiques mentionnées dans le gazouilli : `update`
+### Récupérer les messages destinés à l’utilisateur `get_gazou`
 
-Sens : Serveur - Client
+Sens : Client - Serveur
 
 **Information :** si un utilisateur receveur du gazouilli est à la fois un abonné de l'utilisateur auteur du gazouilli et abonné d'au moins une thématique contenue dans le gazouilli, le serveur devra veiller à n'envoyer le gazouilli qu'une et une seule fois.
 
 Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
-| `gazouilli` | Gazouilli | Objet Gazouilli |
+| `nb_gazou` | int | Nombre d’objets gazouillis à recevoir |
 
 #### Retour sans erreur :
 
