@@ -419,16 +419,16 @@ Paramètres : aucun
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
-### Transférer un message reçu à tous les abonnés de l'auteur du gazouilli et aux utilisateurs suivants les thématiques mentionnées dans le gazouilli : `update`
+### Récupérer les messages destinés à un utilisateur `get_gazou`
 
-Sens : Serveur - Client
+Sens : Client - Serveur
 
 **Information :** si un utilisateur receveur du gazouilli est à la fois un abonné de l'utilisateur auteur du gazouilli et abonné d'au moins une thématique contenue dans le gazouilli, le serveur devra veiller à n'envoyer le gazouilli qu'une et une seule fois.
 
 Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
-| `gazouilli` | Gazouilli | Objet Gazouilli |
+| `nb_gazou` | int | Nombre d’objets gazouillis à envoyer |
 
 #### Retour sans erreur :
 
