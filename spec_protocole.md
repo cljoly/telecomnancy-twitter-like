@@ -126,7 +126,7 @@ Notes :
     - Le code `11` pour une erreur interne du côté serveur
     - Le code `12` pour une erreur interne du côté client
     - Le code `13` pour une erreur liée à une fonctionnalité non implémentée côté client ou serveur.
-
+    - Le code `14` pour une erreur liée à un cookie invalide.
 
 
 ## Objets généraux
