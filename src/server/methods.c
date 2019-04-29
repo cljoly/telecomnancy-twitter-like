@@ -78,7 +78,7 @@ void new_random_cookie(sqlite3 *db, const char *user) {
 int user_name_from_cookie(sqlite3 *db, int cookie, char *username) {
   char retrieved_username[USERNAME_MAXSIZE] = { '\0' };
   char stmt[BUFSIZE];
-  sprintf(stmt, "SELECT name FROM user WHERE cookie='%i' LIMIT 1",
+  sprintf(stmt, "SELECT name FROM user WHERE cookie='%i' LIMIT 1;",
       cookie);
   exec_db(db, stmt, &username_callback, &retrieved_username);
   printf("username récupéré : %s\n", retrieved_username);
@@ -105,7 +105,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que le nom d’utilisateur soit libre
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s'", user);
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", user);
   int nb_user = 0;
   exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (nb_user>0) {
@@ -125,7 +125,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
 
   // Récupérons le cookie
   int cookie = -1;
-  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
+  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s';", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
 
@@ -156,7 +156,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que le nom d’utilisateur existe
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s'", user);
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", user);
   int nb_user = 0;
   exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (nb_user != 1) {
@@ -165,7 +165,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
   }
   
   // Vérifions que le mot de passe soit correct
-  sprintf(stmt, "SELECT * FROM user WHERE password='%s'", pass);
+  sprintf(stmt, "SELECT * FROM user WHERE password='%s';", pass);
   int nb_pass = 0;
   exec_db(db, stmt, &number_of_row_callback, &nb_pass);
   if (nb_pass != 1) {
@@ -178,7 +178,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
 
   // Récupérons le cookie
   int cookie = -1;
-  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
+  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s';", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
 
