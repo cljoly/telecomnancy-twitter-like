@@ -2,7 +2,7 @@
 #define METHODS_H_NBAPO82S
 
 #include <sqlite3.h>
-#include <json.h>
+#include <json-c/json.h>
 
 // Type générique des fonctions qui gèrent les méthodes
 typedef json_object *(method_func)(json_object *request, sqlite3 *db);

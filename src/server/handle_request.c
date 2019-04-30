@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <json.h>
+#include <json-c/json.h>
 #include <sqlite3.h>
 #include <unistd.h>
 
@@ -67,7 +67,7 @@ int dispatch_request(int sockfd, sqlite3 *db) {
   }
 
   // Répondre au client
-  const char *answer_string = json_object_to_json_string(answer);
+  const char *answer_string = json_object_to_json_string_ext(answer, JSON_C_TO_STRING_PLAIN);
   int answer_string_len = strnlen(answer_string, BUFSIZE);
   printf("<==(%d) %s\n", getpid(), answer_string);
   if ((nsnd = write(sockfd, answer_string, answer_string_len)) < 0) {

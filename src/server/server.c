@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <json.h>
+#include <json-c/json.h>
 #include <sqlite3.h>
 #include <unistd.h>
 

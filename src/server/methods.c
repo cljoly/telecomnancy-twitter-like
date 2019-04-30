@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h>
-#include <json.h>
+#include <json-c/json.h>
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
@@ -13,7 +13,7 @@
 #include "json_communication.h"
 
 /**********************************************************************
-*            Callback generiques pour les requêtes SELECT            *
+*                  Callback pour les requêtes SELECT                 *
 **********************************************************************/
 
 /**
@@ -33,10 +33,17 @@ int number_of_row_callback(void *nb_row, int argc, char **argv, char **colName) 
   return 0;
 }
 
+/**
+ *  Récupération du nom d’utilisateur dans une requête SELECT
+ */
+int username_callback(void *username, int argc, char **argv, char **colName) {
+  char *name = (char *)username;
+  if (strcmp(colName[0], "name") != 0 || argc != 1)
+    printf("========== username_callback exécuté dans de mauvaises conditions");
+  strcpy(name, argv[0]);
+  return 0;
+}
 
-/**********************************************************************
-*                       Méthode create_content                       *
-**********************************************************************/
 
 /**
  *  Récupération du cookie depuis une requête select
@@ -49,6 +56,78 @@ int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
   return 0;
 }
 
+/**********************************************************************
+*                    Autres fonctions génériques                     *
+**********************************************************************/
+
+void new_random_cookie(sqlite3 *db, const char *user) {
+  char stmt[BUFSIZE];
+  sprintf(stmt,
+      "UPDATE user SET cookie=ABS(RANDOM() %% %i)"\
+      "WHERE name='%s';",
+      INT_MAX-1, user);
+  exec_db(db, stmt, NULL, NULL);
+}
+
+/*
+ * Récupère le nom d’utilisateur associé au cookie
+ * @param user Est remplacé par le nom d’utilisateur trouvé, doit être de
+ * longueur USERNAME_MAXSIZE
+ * @return 1 si le cookie n’est pas trouvé (cookie invalide).
+ */
+int user_name_from_cookie(sqlite3 *db, int cookie, char *username) {
+  char retrieved_username[USERNAME_MAXSIZE] = { '\0' };
+  char stmt[BUFSIZE];
+  sprintf(stmt, "SELECT name FROM user WHERE cookie='%i' LIMIT 1;",
+      cookie);
+  exec_db(db, stmt, &username_callback, &retrieved_username);
+  printf("username récupéré : %s\n", retrieved_username);
+  if (retrieved_username[0] == '\0') {
+    printf("Pas d’username récupéré\n");
+    return 1;
+  }
+  strncpy(username, retrieved_username, USERNAME_MAXSIZE);
+  printf("username : %s\n", username);
+  return 0;
+}
+
+// Ajout d’un gazouilli à la base de donnée
+void new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
+    struct array_list *list_of_tags, const char *date) {
+  // Ajout des thématiques
+  char stmt[BUFSIZE];
+  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
+    json_object *item = array_list_get_idx(list_of_tags, i);
+    const char *tag_name = json_object_get_string(item);
+    printf("list_of_tags[%i]: %s\n", i, tag_name);
+    sprintf(stmt,
+      "INSERT OR IGNORE INTO tag(name) VALUES('%s');",
+      tag_name);
+    exec_db(db, stmt, NULL, NULL);
+  }
+
+  // Ajouter le gazouilli
+  sprintf(stmt,
+      "INSERT INTO gazou(content, date, author) VALUES('%s', '%s', '%s');",
+      gazou_content, date, author);
+  exec_db(db, stmt, NULL, NULL);
+  int gazou_id = sqlite3_last_insert_rowid(db);
+
+  // Le lier aux thématiques
+  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
+    json_object *item = array_list_get_idx(list_of_tags, i);
+    const char *tag_name = json_object_get_string(item);
+    sprintf(stmt,
+      "INSERT OR IGNORE INTO gazou_tag(gazou_id, tag) VALUES(%i, '%s');",
+      gazou_id, tag_name);
+    exec_db(db, stmt, NULL, NULL);
+  }
+}
+
+/**********************************************************************
+ *                     Méthode create_account                         *
+ **********************************************************************/
+
 json_object *create_account(json_object *req, sqlite3 *db) {
   json_object *params = json_object_object_get(req, "params");
   const char *user = json_object_get_string(
@@ -58,7 +137,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que le nom d’utilisateur soit libre
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s'", user);
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", user);
   int nb_user = 0;
   exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (nb_user>0) {
@@ -72,13 +151,50 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   sprintf(stmt,
       "INSERT INTO user (name, password, cookie)"\
       "VALUES ('%s', '%s', ABS(RANDOM() %% %i));",
-      user, pass, UINT_MAX-1);
+      user, pass, INT_MAX-1);
   exec_db(db, stmt, NULL, NULL);
   memset(stmt, '\0', BUFSIZE);
 
+  // Réponse
+  return create_answer(req, 0);
+}
+
+/**********************************************************************
+*                          Méthode connect                           *
+**********************************************************************/
+
+json_object *connect(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  const char *user = json_object_get_string(
+      json_object_object_get(params, "username"));
+  const char *pass = json_object_get_string(
+      json_object_object_get(params, "password"));
+
+  char stmt[BUFSIZE];
+  // Vérifions que le nom d’utilisateur existe
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", user);
+  int nb_user = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_user);
+  if (nb_user != 1) {
+    printf("Nom d’utilisateur incorrect\n");
+    return create_answer(req, SPEC_ERR_UNKNOWN_USERNAME);
+  }
+  
+  // Vérifions que le mot de passe soit correct
+  sprintf(stmt, "SELECT * FROM user WHERE password='%s';", pass);
+  int nb_pass = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_pass);
+  if (nb_pass != 1) {
+    printf("Mot de passe incorrecte\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_PASSWORD);
+  }
+
+  // Réinitialisation du cookie
+  new_random_cookie(db, user);
+
   // Récupérons le cookie
-  int cookie = -1.;
-  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s'", user);
+  int cookie = -1;
+  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s';", user);
   exec_db(db, stmt, &cookie_callback, &cookie);
   printf("COOKIE from callback: %i\n", cookie);
 
@@ -93,6 +209,176 @@ json_object *create_account(json_object *req, sqlite3 *db) {
     NULL
   };
   fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
+
+/**********************************************************************
+*                         Méthode disconnect                         *
+**********************************************************************/
+
+json_object *disconnect(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  // Vérifions que le cookie soit correct en récupérant l’utilisateur
+  char username[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, username);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  // Mise à jour du cookie, pour déconnecter
+  new_random_cookie(db, username);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
+/**********************************************************************
+*                         Méthode send_gazou                         *
+**********************************************************************/
+
+
+json_object *send_gazou(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  json_object *gazou = json_object_object_get(params, "gazouilli");
+  const char *gazou_content = json_object_get_string(
+      json_object_object_get(gazou, "content"));
+  struct array_list *gazou_tags = json_object_get_array(
+      json_object_object_get(gazou, "list_of_tags"));
+  const char *gazou_date = json_object_get_string(
+      json_object_object_get(gazou, "date"));
+
+  // Récupération du nom utilisateur
+  char author[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, author);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  // TODO Vérifier éventuellement SPEC_ERR_INCORRECT_CHAR_IN_GAZOU (quand on
+  // saura comment le faire)
+
+  // Vérification de la longueur du gazouilli
+  if (((int)strnlen(gazou_content, SPEC_GAZOU_SIZE+1)) > SPEC_GAZOU_SIZE) {
+    printf("Gazoulli reçu trop long\n");
+    return create_answer(req, SPEC_ERR_MESSAGE_TOO_LONG);
+  }
+
+  // Enregistrement du gazouilli
+  new_gazou(db, gazou_content, author, gazou_tags, gazou_date);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
+/**********************************************************************
+*                        Méthode follow_user                         *
+**********************************************************************/
+
+json_object *follow_user(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  const char *username_to_follow = json_object_get_string(
+      json_object_object_get(params, "username"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Vérifions que le nom d’utilisateur à suivre existe
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", username_to_follow);
+  int nb_user = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_user);
+  if (nb_user<1) {
+    printf("Utilisateur à suivre inconnu\n");
+    return create_answer(req, SPEC_ERR_UNKNOWN_USERNAME_TO_FOLLOW);
+  }
+
+  // Vérifions qu’on ne soit pas déjà abonné
+  sprintf(stmt,
+      "SELECT * FROM user_subscription"\
+      " WHERE followed='%s' AND follower='%s';",
+      username_to_follow, user);
+  int nb = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (nb>0) {
+    printf("Utilisateur %s déjà suivi\n", username_to_follow);
+    return create_answer(req, SPEC_ERR_ALREADY_FOLLOWING_USERNAME);
+  }
+
+  // Insérons l’information de suivie
+  sprintf(stmt,
+      "INSERT INTO user_subscription(followed, follower)"\
+      "VALUES ('%s', '%s');",
+      username_to_follow, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Réponse
+  return create_answer(req, 0);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
+/**********************************************************************
+*                         Méthode follow_tag                         *
+**********************************************************************/
+
+
+json_object *follow_tag(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  const char *tag_to_follow = json_object_get_string(
+      json_object_object_get(params, "tag"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Vérifions qu’on ne soit pas déjà abonné au tag
+  sprintf(stmt,
+      "SELECT * FROM tag_subscription"\
+      " WHERE tag='%s' AND follower='%s';",
+      tag_to_follow, user);
+  int nb = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (nb>0) {
+    printf("Tag %s déjà suivi\n", tag_to_follow);
+    return create_answer(req, SPEC_ERR_ALREADY_FOLLOWING_TAG);
+  }
+
+  // Insérons l’information de suivie
+  sprintf(stmt,
+      "INSERT INTO tag_subscription(tag, follower)"\
+      "VALUES ('%s', '%s');",
+      tag_to_follow, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Réponse
+  return create_answer(req, 0);
+
+  json_object *answer = create_answer(req, 0);
   return answer;
 }
 
@@ -113,11 +399,21 @@ json_object *not_implemented(json_object *req, sqlite3 *db) {
 // TODO Compléter ça avec les autres méthodes de la spec
 static char *method_names[] = {
   "create_account",
+  "connect",
+  "disconnect",
+  "send_gazou",
+  "follow_user",
+  "follow_tag",
   NULL
 };
 
 static method_func_p method_funcs[] = {
   &create_account,
+  &connect,
+  &disconnect,
+  &send_gazou,
+  &follow_user,
+  &follow_tag,
   &not_implemented
 };
 
