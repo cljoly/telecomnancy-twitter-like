@@ -312,8 +312,7 @@ Valeur des codes d'erreur :
 
 | Valeur | Description |
 |----:|:---|
-| 1 | Nom d'utilisateur inconnu |
-| 2 | Déjà abonné |
+| 1 | Déjà abonné |
 
 ### Demander à ne plus suivre un utilisateur : `unfollow_user`
 
@@ -336,8 +335,7 @@ Valeur des codes d'erreur :
 
 | Valeur | Description |
 |----:|:---|
-| 1 | Nom d'utilisateur inconnu |
-| 2 | Non abonné |
+| 1 | Non abonné |
 
 ### Demander à ne plus suivre une thématique : `unfollow_tag`
 
