@@ -278,7 +278,61 @@ json_object *send_gazou(json_object *req, sqlite3 *db) {
   return answer;
 }
 
+/**********************************************************************
+*                        Méthode follow_user                         *
+**********************************************************************/
 
+json_object *follow_user(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  const char *username_to_follow = json_object_get_string(
+      json_object_object_get(params, "username"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Vérifions que le nom d’utilisateur à suivre existe
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", username_to_follow);
+  int nb_user = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_user);
+  if (nb_user<1) {
+    printf("Utilisateur à suivre inconnu\n");
+    return create_answer(req, SPEC_ERR_UNKNOWN_USERNAME_TO_FOLLOW);
+  }
+
+  // Vérifions qu’on ne soit pas déjà abonné
+  sprintf(stmt,
+      "SELECT * FROM user_subscription"\
+      " WHERE followed='%s' AND follower='%s';",
+      username_to_follow, user);
+  int nb = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (nb>0) {
+    printf("Utilisateur %s déjà suivi\n", username_to_follow);
+    return create_answer(req, SPEC_ERR_UNKNOWN_USERNAME_TO_FOLLOW);
+  }
+
+  // Insérons l’information de suivie
+  sprintf(stmt,
+      "INSERT INTO user_subscription(followed, follower)"\
+      "VALUES ('%s', '%s');",
+      username_to_follow, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Réponse
+  return create_answer(req, 0);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
 
 /**********************************************************************
 *              Pour ce qui n’est pas encore implémenté               *
@@ -300,6 +354,7 @@ static char *method_names[] = {
   "connect",
   "disconnect",
   "send_gazou",
+  "follow_user",
   NULL
 };
 
@@ -308,6 +363,7 @@ static method_func_p method_funcs[] = {
   &connect,
   &disconnect,
   &send_gazou,
+  &follow_user,
   &not_implemented
 };
 

@@ -16,6 +16,9 @@
 // send_gazou
 #define SPEC_ERR_INCORRECT_CHAR_IN_GAZOU  1
 #define SPEC_ERR_MESSAGE_TOO_LONG   2
+// follow_user
+#define SPEC_ERR_UNKNOWN_USERNAME_TO_FOLLOW  1
+#define SPEC_ERR_ALREADY_FOLLOWING   2
 // TODO Continuer avec la spec
 
 // Longueure du texte d’un gazouilli
