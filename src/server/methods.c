@@ -63,7 +63,7 @@ int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
 void new_random_cookie(sqlite3 *db, const char *user) {
   char stmt[BUFSIZE];
   sprintf(stmt,
-      "UPDATE user SET cookie=ABS(RANDOM() %% %i)"\
+      "UPDATE user SET cookie=ABS(RANDOM() %% %i) "\
       "WHERE name='%s';",
       INT_MAX-1, user);
   exec_db(db, stmt, NULL, NULL);
@@ -149,7 +149,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
      vérifie : la proba de collision est faible à cause de la
      taille du nombre aléatoire fournit (jusqu’à une dizaine de clients). */
   sprintf(stmt,
-      "INSERT INTO user (name, password, cookie)"\
+      "INSERT INTO user (name, password, cookie) "\
       "VALUES ('%s', '%s', ABS(RANDOM() %% %i));",
       user, pass, INT_MAX-1);
   exec_db(db, stmt, NULL, NULL);
@@ -309,8 +309,8 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
 
   // Vérifions qu’on ne soit pas déjà abonné
   sprintf(stmt,
-      "SELECT * FROM user_subscription"\
-      " WHERE followed='%s' AND follower='%s';",
+      "SELECT * FROM user_subscription "\
+      "WHERE followed='%s' AND follower='%s';",
       username_to_follow, user);
   int nb = 0;
   exec_db(db, stmt, &number_of_row_callback, &nb);
@@ -321,7 +321,7 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
 
   // Insérons l’information de suivie
   sprintf(stmt,
-      "INSERT INTO user_subscription(followed, follower)"\
+      "INSERT INTO user_subscription(followed, follower) "\
       "VALUES ('%s', '%s');",
       username_to_follow, user);
   exec_db(db, stmt, NULL, NULL);
@@ -357,7 +357,7 @@ json_object *follow_tag(json_object *req, sqlite3 *db) {
   char stmt[BUFSIZE];
   // Vérifions qu’on ne soit pas déjà abonné au tag
   sprintf(stmt,
-      "SELECT * FROM tag_subscription"\
+      "SELECT * FROM tag_subscription "\
       " WHERE tag='%s' AND follower='%s';",
       tag_to_follow, user);
   int nb = 0;
@@ -369,7 +369,7 @@ json_object *follow_tag(json_object *req, sqlite3 *db) {
 
   // Insérons l’information de suivie
   sprintf(stmt,
-      "INSERT INTO tag_subscription(tag, follower)"\
+      "INSERT INTO tag_subscription(tag, follower) "\
       "VALUES ('%s', '%s');",
       tag_to_follow, user);
   exec_db(db, stmt, NULL, NULL);
@@ -381,6 +381,110 @@ json_object *follow_tag(json_object *req, sqlite3 *db) {
   json_object *answer = create_answer(req, 0);
   return answer;
 }
+
+/**********************************************************************
+*                       Méthode unfollow_user                        *
+**********************************************************************/
+
+json_object *unfollow_user(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  const char *username_to_unfollow = json_object_get_string(
+      json_object_object_get(params, "username"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Vérifions que le nom d’utilisateur à cesser de suivre existe
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", username_to_unfollow);
+  int nb_user = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb_user);
+  if (nb_user<1) {
+    printf("Utilisateur à cesser de suivre inconnu\n");
+    return create_answer(req, SPEC_ERR_UNKNOWN_USERNAME_TO_UNFOLLOW);
+  }
+
+  // Vérifions qu’on soit bien déjà abonné
+  sprintf(stmt,
+      "SELECT * FROM user_subscription "\
+      " WHERE followed='%s' AND follower='%s';",
+      username_to_unfollow, user);
+  int nb = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (nb == 0) {
+    printf("Non abonné à l’utilisateur %s\n", username_to_unfollow);
+    return create_answer(req, SPEC_ERR_ALREADY_UNFOLLOWING_USERNAME);
+  }
+
+  // Supprimons l’information de suivie
+  sprintf(stmt,
+      "DELETE FROM user_subscription WHERE followed='%s' AND follower='%s';",
+      username_to_unfollow, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Réponse
+  return create_answer(req, 0);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
+
+/**********************************************************************
+*                       Méthode unfollow_tag                         *
+**********************************************************************/
+
+json_object *unfollow_tag(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  const char *tag_to_unfollow = json_object_get_string(
+      json_object_object_get(params, "tag"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Vérifions qu’on soit bien déjà abonné au tag
+  sprintf(stmt,
+      "SELECT * FROM tag_subscription "\
+      " WHERE tag='%s' AND follower='%s';",
+      tag_to_unfollow, user);
+  int nb = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (nb == 0) {
+    printf("Tag %s non suivi\n", tag_to_unfollow);
+    return create_answer(req, SPEC_ERR_ALREADY_UNFOLLOWING_TAG);
+  }
+
+  // Supprimons l’information de suivie
+  sprintf(stmt,
+      "DELETE FROM tag_subscription "\
+      "WHERE tag='%s' AND follower='%s';",
+      tag_to_unfollow, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Réponse
+  return create_answer(req, 0);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
 
 /**********************************************************************
 *              Pour ce qui n’est pas encore implémenté               *
@@ -404,6 +508,8 @@ static char *method_names[] = {
   "send_gazou",
   "follow_user",
   "follow_tag",
+  "unfollow_user",
+  "unfollow_tag",
   NULL
 };
 
@@ -414,6 +520,8 @@ static method_func_p method_funcs[] = {
   &send_gazou,
   &follow_user,
   &follow_tag,
+  &unfollow_user,
+  &unfollow_tag,
   &not_implemented
 };
 
