@@ -221,6 +221,8 @@ Paramètres :
 | `gazouilli` | Gazouilli | Objet de type Gazouilli |
 | `cookie` | int | Authentifie l’utilisateur |
 
+Les champs `id` et `author` seront ignorés puisqu’ils sont définis par le
+serveur.
 
 Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli.
 
@@ -310,8 +312,7 @@ Valeur des codes d'erreur :
 
 | Valeur | Description |
 |----:|:---|
-| 1 | Nom d'utilisateur inconnu |
-| 2 | Déjà abonné |
+| 1 | Déjà abonné |
 
 ### Demander à ne plus suivre un utilisateur : `unfollow_user`
 
@@ -334,8 +335,7 @@ Valeur des codes d'erreur :
 
 | Valeur | Description |
 |----:|:---|
-| 1 | Nom d'utilisateur inconnu |
-| 2 | Non abonné |
+| 1 | Non abonné |
 
 ### Demander à ne plus suivre une thématique : `unfollow_tag`
 
@@ -358,22 +358,25 @@ Valeur des codes d'erreur :
 
 | Valeur | Description |
 |----:|:---|
-| 1 | Nom de la thématique inconnue |
-| 2 | Non abonné |
+| 1 | Non abonné |
 
 ### Lister les utilisateurs suivis : `list_followed_users`
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
 Paramètres :
+
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_users` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs suivis |
-| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -384,6 +387,7 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 Sens : Client - Serveur
 
 Paramètres :
+
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `cookie` | int | Authentifie l’utilisateur |
@@ -392,6 +396,7 @@ Paramètres :
 #### Retour sans erreur :
 
 Paramètres :
+
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_tags` | Tableau de String | Liste des thématiques suivies |
@@ -404,15 +409,19 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
 Paramètres :
+
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_followers` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs auquels on est abonné |
-| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -423,6 +432,7 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 Sens : Client - Serveur
 
 Paramètres :
+
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `cookie` | int | Authentifie l’utilisateur |
@@ -436,13 +446,14 @@ Paramètres : aucun
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
-### Récupérer les messages destinés à l’utilisateur `get_gazou`
+### Récupérer les messages destinés à l’utilisateur : `get_gazou`
 
 Sens : Client - Serveur
 
 **Information :** si un utilisateur receveur du gazouilli est à la fois un abonné de l'utilisateur auteur du gazouilli et abonné d'au moins une thématique contenue dans le gazouilli, le serveur devra veiller à n'envoyer le gazouilli qu'une et une seule fois.
 
 Paramètres :
+
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `nb_gazou` | int | Nombre d’objets gazouillis à recevoir |
@@ -458,6 +469,7 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 
 ## Références
+
 [^t]: https://twitter.com/
 [^msgpack]: https://msgpack.org/
 [^json]: http://json.org/
