@@ -58,7 +58,9 @@ int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
 
 int fill_users_array_callback(void *jarray, int argc, char **argv, char **colName) {
   json_object *ar = (json_object *)jarray;
-  if (strcmp(colName[0], "followed") != 0 || argc != 1)
+  if ((strcmp(colName[0], "followed") != 0
+        && strcmp(colName[0], "follower") != 0)
+      || argc != 1)
     printf("========== fill_users_array_callback exécuté dans de mauvaises conditions");
   json_object_array_add(ar, json_object_new_string(argv[0]));
   return 0;
@@ -576,6 +578,44 @@ json_object *list_followed_tags(json_object *req, sqlite3 *db) {
 }
 
 /**********************************************************************
+*                     Méthode list_my_followers                      *
+**********************************************************************/
+
+json_object *list_my_followers(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Récupérations des abonnés
+  sprintf(stmt, "SELECT follower FROM user_subscription WHERE followed='%s';", user);
+  json_object *followed_users = json_object_new_array();
+  exec_db(db, stmt, &fill_users_array_callback, followed_users);
+
+  // Réponse
+  json_object *answer = create_answer(req, 0);
+  const char *answer_params[] = {
+    "list_of_followers",
+    NULL
+  };
+  json_object *answer_values[] = {
+    followed_users,
+    NULL
+  };
+  fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
+
+
+/**********************************************************************
 *              Pour ce qui n’est pas encore implémenté               *
 **********************************************************************/
 
@@ -601,6 +641,7 @@ static char *method_names[] = {
   "unfollow_tag",
   "list_followed_users",
   "list_followed_tags",
+  "list_my_followers",
   NULL
 };
 
@@ -615,6 +656,7 @@ static method_func_p method_funcs[] = {
   &unfollow_tag,
   &list_followed_users,
   &list_followed_tags,
+  &list_my_followers,
   &not_implemented
 };
 
