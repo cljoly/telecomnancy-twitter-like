@@ -18,7 +18,9 @@
 #define SPEC_ERR_MESSAGE_TOO_LONG   2
 // follow_user
 #define SPEC_ERR_UNKNOWN_USERNAME_TO_FOLLOW  1
-#define SPEC_ERR_ALREADY_FOLLOWING   2
+#define SPEC_ERR_ALREADY_FOLLOWING_USERNAME   2
+// follow_tag
+#define SPEC_ERR_ALREADY_FOLLOWING_TAG   1
 // TODO Continuer avec la spec
 
 // Longueure du texte d’un gazouilli

@@ -316,7 +316,7 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
   exec_db(db, stmt, &number_of_row_callback, &nb);
   if (nb>0) {
     printf("Utilisateur %s déjà suivi\n", username_to_follow);
-    return create_answer(req, SPEC_ERR_UNKNOWN_USERNAME_TO_FOLLOW);
+    return create_answer(req, SPEC_ERR_ALREADY_FOLLOWING_USERNAME);
   }
 
   // Insérons l’information de suivie
@@ -324,6 +324,54 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
       "INSERT INTO user_subscription(followed, follower)"\
       "VALUES ('%s', '%s');",
       username_to_follow, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Réponse
+  return create_answer(req, 0);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
+/**********************************************************************
+*                         Méthode follow_tag                         *
+**********************************************************************/
+
+
+json_object *follow_tag(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  const char *tag_to_follow = json_object_get_string(
+      json_object_object_get(params, "tag"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Vérifions qu’on ne soit pas déjà abonné au tag
+  sprintf(stmt,
+      "SELECT * FROM tag_subscription"\
+      " WHERE tag='%s' AND follower='%s';",
+      tag_to_follow, user);
+  int nb = 0;
+  exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (nb>0) {
+    printf("Tag %s déjà suivi\n", tag_to_follow);
+    return create_answer(req, SPEC_ERR_ALREADY_FOLLOWING_TAG);
+  }
+
+  // Insérons l’information de suivie
+  sprintf(stmt,
+      "INSERT INTO tag_subscription(tag, follower)"\
+      "VALUES ('%s', '%s');",
+      tag_to_follow, user);
   exec_db(db, stmt, NULL, NULL);
   memset(stmt, '\0', BUFSIZE);
 
@@ -355,6 +403,7 @@ static char *method_names[] = {
   "disconnect",
   "send_gazou",
   "follow_user",
+  "follow_tag",
   NULL
 };
 
@@ -364,6 +413,7 @@ static method_func_p method_funcs[] = {
   &disconnect,
   &send_gazou,
   &follow_user,
+  &follow_tag,
   &not_implemented
 };
 
