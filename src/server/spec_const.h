@@ -18,6 +18,9 @@
 #define SPEC_ERR_MESSAGE_TOO_LONG   2
 // TODO Continuer avec la spec
 
+// Longueure du texte d’un gazouilli
+#define SPEC_GAZOU_SIZE 140
+
 #define DEFAULT_PORT 1234
 
 #endif /* end of include guard: SPEC_CONST_H_DSA5DIFO */

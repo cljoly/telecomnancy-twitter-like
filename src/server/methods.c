@@ -91,10 +91,42 @@ int user_name_from_cookie(sqlite3 *db, int cookie, char *username) {
   return 0;
 }
 
+// Ajout d’un gazouilli à la base de donnée
+void new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
+    struct array_list *list_of_tags, const char *date) {
+  // Ajout des thématiques
+  char stmt[BUFSIZE];
+  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
+    json_object *item = array_list_get_idx(list_of_tags, i);
+    const char *tag_name = json_object_get_string(item);
+    printf("list_of_tags[%i]: %s\n", i, tag_name);
+    sprintf(stmt,
+      "INSERT OR IGNORE INTO tag(name) VALUES('%s');",
+      tag_name);
+    exec_db(db, stmt, NULL, NULL);
+  }
+
+  // Ajouter le gazouilli
+  sprintf(stmt,
+      "INSERT INTO gazou(content, date, author) VALUES('%s', '%s', '%s');",
+      gazou_content, date, author);
+  exec_db(db, stmt, NULL, NULL);
+  int gazou_id = sqlite3_last_insert_rowid(db);
+
+  // Le lier aux thématiques
+  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
+    json_object *item = array_list_get_idx(list_of_tags, i);
+    const char *tag_name = json_object_get_string(item);
+    sprintf(stmt,
+      "INSERT OR IGNORE INTO gazou_tag(gazou_id, tag) VALUES(%i, '%s');",
+      gazou_id, tag_name);
+    exec_db(db, stmt, NULL, NULL);
+  }
+}
 
 /**********************************************************************
-*                     Méthode create_account                         *
-**********************************************************************/
+ *                     Méthode create_account                         *
+ **********************************************************************/
 
 json_object *create_account(json_object *req, sqlite3 *db) {
   json_object *params = json_object_object_get(req, "params");
@@ -204,6 +236,49 @@ json_object *disconnect(json_object *req, sqlite3 *db) {
   return answer;
 }
 
+/**********************************************************************
+*                         Méthode send_gazou                         *
+**********************************************************************/
+
+
+json_object *send_gazou(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  json_object *gazou = json_object_object_get(params, "gazouilli");
+  const char *gazou_content = json_object_get_string(
+      json_object_object_get(gazou, "content"));
+  struct array_list *gazou_tags = json_object_get_array(
+      json_object_object_get(gazou, "list_of_tags"));
+  const char *gazou_date = json_object_get_string(
+      json_object_object_get(gazou, "date"));
+
+  // Récupération du nom utilisateur
+  char author[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, author);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  // TODO Vérifier éventuellement SPEC_ERR_INCORRECT_CHAR_IN_GAZOU (quand on
+  // saura comment le faire)
+
+  // Vérification de la longueur du gazouilli
+  if (((int)strnlen(gazou_content, SPEC_GAZOU_SIZE+1)) > SPEC_GAZOU_SIZE) {
+    printf("Gazoulli reçu trop long\n");
+    return create_answer(req, SPEC_ERR_MESSAGE_TOO_LONG);
+  }
+
+  // Enregistrement du gazouilli
+  new_gazou(db, gazou_content, author, gazou_tags, gazou_date);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
+
 
 /**********************************************************************
 *              Pour ce qui n’est pas encore implémenté               *
@@ -224,6 +299,7 @@ static char *method_names[] = {
   "create_account",
   "connect",
   "disconnect",
+  "send_gazou",
   NULL
 };
 
@@ -231,6 +307,7 @@ static method_func_p method_funcs[] = {
   &create_account,
   &connect,
   &disconnect,
+  &send_gazou,
   &not_implemented
 };
 
