@@ -221,6 +221,8 @@ Paramètres :
 | `gazouilli` | Gazouilli | Objet de type Gazouilli |
 | `cookie` | int | Authentifie l’utilisateur |
 
+Les champs `id` et `author` seront ignorés puisqu’ils sont définis par le
+serveur.
 
 Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli.
 
