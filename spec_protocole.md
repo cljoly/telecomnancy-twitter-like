@@ -358,14 +358,17 @@ Valeur des codes d'erreur :
 
 | Valeur | Description |
 |----:|:---|
-| 1 | Nom de la thématique inconnue |
-| 2 | Non abonné |
+| 1 | Non abonné |
 
 ### Lister les utilisateurs suivis : `list_followed_users`
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -374,7 +377,6 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_users` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs suivis |
-| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -407,7 +409,11 @@ Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
 Sens : Client - Serveur
 
-Paramètres : aucun
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour sans erreur :
 
@@ -416,7 +422,6 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `list_of_followers` | Tableau d'utilisateurs | Liste d'objets de type utilisateur qui référence tous les utilisateurs auquels on est abonné |
-| `cookie` | int | Authentifie l’utilisateur |
 
 #### Retour avec erreur :
 
@@ -441,7 +446,7 @@ Paramètres : aucun
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
-### Récupérer les messages destinés à l’utilisateur `get_gazou`
+### Récupérer les messages destinés à l’utilisateur : `get_gazou`
 
 Sens : Client - Serveur
 
