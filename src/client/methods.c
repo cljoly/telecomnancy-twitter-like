@@ -18,6 +18,7 @@ request_function functions[] = {
         create_account,     //"Créer un compte",
         connect_server,     //"Se connecter",
         send_gazou,         //"Envoyer un gazouilli         ",
+        get_gazou,          //"Gazouillis reçus             ",
         not_implemented,    //"Relayer un gazouilli         ",
         follow_user,        //"Suivre un utilisateur        ",
         unfollow_user,      //"Ne plus suivre un utilisateur",
@@ -467,12 +468,12 @@ int list_followed_tags(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:{
-            json_object* followed_users_json = json_object_object_get(result_params, "list_of_tags");
-            array_list* list_of_followed_users = json_object_get_array(followed_users_json);
+            json_object* followed_tags_json = json_object_object_get(result_params, "list_of_tags");
+            array_list* list_of_followed_tags = json_object_get_array(followed_tags_json);
 
             print_message_below(SUCCESS, "Liste des tags suivis :\n");
-            for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
-                json_object* item = array_list_get_idx(list_of_followed_users, i);
+            for (size_t i = 0; i < array_list_length(list_of_followed_tags); i++) {
+                json_object* item = array_list_get_idx(list_of_followed_tags, i);
                 const char* followed = json_object_get_string(item);
                 printf("%s\n", followed);
             }
@@ -510,12 +511,12 @@ int list_my_followers(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:{
-            json_object* followed_users_json = json_object_object_get(result_params, "list_of_followers");
-            array_list* list_of_followed_users = json_object_get_array(followed_users_json);
+            json_object* followers_users_json = json_object_object_get(result_params, "list_of_followers");
+            array_list* list_of_followers_users = json_object_get_array(followers_users_json);
 
             print_message_below(SUCCESS, "Liste de mes abonnés :\n");
-            for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
-                json_object* item = array_list_get_idx(list_of_followed_users, i);
+            for (size_t i = 0; i < array_list_length(list_of_followers_users); i++) {
+                json_object* item = array_list_get_idx(list_of_followers_users, i);
                 const char* followed = json_object_get_string(item);
                 printf("%s\n", followed);
             }
@@ -530,6 +531,61 @@ int list_my_followers(){
     json_object_put(result_params);
     return error_code;
 }
+
+int get_gazou(){
+    // Création de la requête
+    json_object* request = create_request("get_gazou");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "nb_gazou", json_object_new_int(NUMBER_OF_GAZOU));
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:{
+            json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
+            array_list* list_of_gazous = json_object_get_array(gazous_json);
+
+            print_message_below(SUCCESS, "Liste de mes abonnés :\n");
+            for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
+                json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
+                print_gazou(gazou_json);
+            }
+            break;}
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+}
+
+void print_gazou(json_object* gazou_json){
+    int id = json_object_get_int(json_object_object_get(gazou_json, "id"));
+    const char* author = json_object_get_string(json_object_object_get(gazou_json, "author"));
+    printf("%d - %s\n", id, author);
+    const char* content = json_object_get_string(json_object_object_get(gazou_json, "content"));
+    printf("%s\n", content);
+    const char* date = json_object_get_string(json_object_object_get(gazou_json, "date"));
+    printf("%s\n", date);
+    printf("\n");
+}
+
 
 /**
  * Ferme la socket et quitte le programme.

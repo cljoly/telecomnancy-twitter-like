@@ -458,6 +458,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `nb_gazou` | int | Nombre d’objets gazouillis à recevoir |
+| `cookie` | int | Authentifie l’utilisateur |
 
 On récupère au plus `nb_gazou` gazouillis.
 

@@ -1,6 +1,7 @@
 #ifndef PROJET_RSA_DEDONATO_JOLY_METHODS_H
 #define PROJET_RSA_DEDONATO_JOLY_METHODS_H
 
+#define NUMBER_OF_GAZOU 20
 
 /**
  * Une request_function est une fonction qui peut être appellée à la demande de l'utilisateur.
@@ -26,6 +27,9 @@ int unfollow_tag();
 int list_followed_users();
 int list_followed_tags();
 int list_my_followers();
+int get_gazou();
+typedef struct json_object json_object;
+void print_gazou(json_object* gazou_json);
 int disconnect();
 typedef struct json_object json_object;
 

@@ -16,6 +16,7 @@ static char* commands[] = {
         "Créer un compte",
         "Se connecter",
         "Envoyer un gazouilli         ",
+        "Gazouillis reçus             ",
         "Relayer un gazouilli         ",
         "Suivre un utilisateur        ",
         "Ne plus suivre un utilisateur",
