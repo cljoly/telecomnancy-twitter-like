@@ -156,7 +156,6 @@ int new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
     if (edr != 0) {
       return 1;
     }
-    return 0;
   }
 
   // Ajouter le gazouilli
