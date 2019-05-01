@@ -444,9 +444,6 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
 
   // Réponse
   return create_answer(req, 0);
-
-  json_object *answer = create_answer(req, 0);
-  return answer;
 }
 
 /**********************************************************************
@@ -500,9 +497,6 @@ json_object *follow_tag(json_object *req, sqlite3 *db) {
 
   // Réponse
   return create_answer(req, 0);
-
-  json_object *answer = create_answer(req, 0);
-  return answer;
 }
 
 /**********************************************************************
@@ -564,9 +558,6 @@ json_object *unfollow_user(json_object *req, sqlite3 *db) {
 
   // Réponse
   return create_answer(req, 0);
-
-  json_object *answer = create_answer(req, 0);
-  return answer;
 }
 
 
@@ -618,9 +609,6 @@ json_object *unfollow_tag(json_object *req, sqlite3 *db) {
 
   // Réponse
   return create_answer(req, 0);
-
-  json_object *answer = create_answer(req, 0);
-  return answer;
 }
 
 /**********************************************************************
