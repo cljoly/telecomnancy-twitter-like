@@ -17,6 +17,7 @@ typedef int(* request_function)();
 int not_implemented();
 int quit();
 int create_account();
+int connect_server();
 int disconnect();
 typedef struct json_object json_object;
 

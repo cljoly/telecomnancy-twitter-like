@@ -16,7 +16,7 @@
 #include "methods.h"
 
 
-int connected = 0;
+int cookie = -1;
 int sockfd;
 
 /**************************************************************************
@@ -142,9 +142,9 @@ int check_response(json_object* response, unsigned int request_id) {
 
     json_object* error = json_object_object_get(response, "error");
     if (error != NULL) {
-        const char* result_method = json_object_get_string(error);
+        //const char* result_method = json_object_get_string(error);
         int error_code = json_object_get_int(json_object_object_get(response, "error_code"));
-        fprintf(stderr, "Erreur: Message %d: Méthode %s, code: %d", response_id, result_method, error_code);
+        //fprintf(stderr, "Erreur: Message %d: Méthode %s, code: %d", response_id, result_method, error_code);
         return error_code;
     }
     return 0;
@@ -194,14 +194,14 @@ int main(int argc, char* argv[]) {
     printTitle();
     while (1) {
         // récupération de la commande utilisateur
-        unsigned int command = prompt_user(connected);
-        if (command == UINT_MAX){
+        unsigned int method_id = prompt_user(cookie);
+        if (method_id == UINT_MAX){
             continue;
         }
         // Nettoyage du terminal, changement de mode
         clear_all_terminal();
 
-        request_function function = get_function(command);
+        request_function function = get_function(method_id);
 
         // Appel de la fonction
         int return_code = function();

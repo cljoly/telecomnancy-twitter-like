@@ -47,7 +47,7 @@ void print_menu(int connected) {
 
     unsigned int first_command_index = 0;
     unsigned int last_command_index = 2;
-    if (connected) {
+    if (connected != -1) {
         first_command_index = 3;
         last_command_index = commands_count - 1;
     }
@@ -60,7 +60,7 @@ void print_menu(int connected) {
     unsigned int printed_line_chars = 0;
     for (unsigned int i = first_command_index; i <= last_command_index; i++) {
         printed_line_chars += 5 + strlen(commands[i]);
-        printf("%2d - %s", i - connected, commands[i]);
+        printf("%2d - %s", i , commands[i]);
 
         // S'il faut encore afficher une commande
         if (i + 1 < commands_count) {
