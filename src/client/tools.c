@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "tools.h"
 
 size_t read_stdin(char* input, int max_size){
@@ -18,3 +19,11 @@ size_t read_stdin(char* input, int max_size){
     return nLen;
 }
 
+void get_iso_time_now(char* result){
+    time_t timer;
+    struct tm* tm_info;
+    time(&timer);
+    tm_info = localtime(&timer);
+
+    strftime(result, 26, "%Y-%m-%dT%H:%M:%S", tm_info);
+}

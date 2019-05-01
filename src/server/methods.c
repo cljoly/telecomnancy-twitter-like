@@ -199,7 +199,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
   }
   
   // Vérifions que le mot de passe soit correct
-  sprintf(stmt, "SELECT * FROM user WHERE password='%s';", pass);
+  sprintf(stmt, "SELECT * FROM user WHERE name='%s' AND password='%s';", user, pass);
   int nb_pass = 0;
   exec_db(db, stmt, &number_of_row_callback, &nb_pass);
   if (nb_pass != 1) {
