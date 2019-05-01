@@ -176,7 +176,7 @@ int send_gazou(){
             }
             if (*end_cursor == ' '){
                 *end_cursor = '\0';
-                json_object_array_add(list_of_tags, json_object_new_string(start_cursor));
+                json_object_array_add(list_of_tags, json_object_new_string(start_cursor+1));
                 *end_cursor = ' ';
                 start_cursor = end_cursor;
             } else {
@@ -558,7 +558,7 @@ int get_gazou(){
             json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
             array_list* list_of_gazous = json_object_get_array(gazous_json);
 
-            print_message_below(SUCCESS, "Liste de mes abonnés :\n");
+            print_message_below(SUCCESS, "Liste des gazouillis reçus :\n");
             for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
                 json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
                 print_gazou(gazou_json);
