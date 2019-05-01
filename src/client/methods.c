@@ -14,19 +14,19 @@ extern int cookie;
 extern int sockfd;
 
 request_function functions[] = {
-        quit,
-        create_account,
-        connect_server,
-        send_gazou,
-        not_implemented,
-        follow_user,
-        unfollow_user,
-        not_implemented,
-        not_implemented,
-        not_implemented,
-        not_implemented,
-        not_implemented,
-        disconnect
+        quit,               //"Quitter",
+        create_account,     //"Créer un compte",
+        connect_server,     //"Se connecter",
+        send_gazou,         //"Envoyer un gazouilli         ",
+        not_implemented,    //"Relayer un gazouilli         ",
+        follow_user,        //"Suivre un utilisateur        ",
+        unfollow_user,      //"Ne plus suivre un utilisateur",
+        not_implemented,    //"Utilisateurs suivis          ",
+        not_implemented,    //"Mes Abonnés                  ",
+        not_implemented,    //"Suivre une thématique        ",
+        not_implemented,    //"Ne plus suivre une thématique",
+        not_implemented,    //"Thématique suivies           ",
+        disconnect          //"Déconnexion                  "
 };
 const unsigned int functions_count = sizeof(functions) / sizeof(request_function);
 
