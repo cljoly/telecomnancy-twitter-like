@@ -39,7 +39,7 @@ int number_of_row_callback(void *nb_row, int argc, char **argv, char **colName) 
 int username_callback(void *username, int argc, char **argv, char **colName) {
   char *name = (char *)username;
   if (strcmp(colName[0], "name") != 0 || argc != 1)
-    printf("========== username_callback exécuté dans de mauvaises conditions");
+    printf("========== username_callback exécuté dans de mauvaises conditions\n");
   strcpy(name, argv[0]);
   return 0;
 }
@@ -51,7 +51,7 @@ int username_callback(void *username, int argc, char **argv, char **colName) {
 int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
   int *c = (int *)cookie;
   if (strcmp(colName[0], "cookie") != 0 || argc != 1)
-    printf("========== cookie_callback exécuté dans de mauvaises conditions");
+    printf("========== cookie_callback exécuté dans de mauvaises conditions\n");
   *c = atoi(argv[0]);
   return 0;
 }
@@ -62,7 +62,7 @@ int fill_users_array_callback(void *jarray, int argc, char **argv, char **colNam
   if ((strcmp(colName[0], "followed") != 0
         && strcmp(colName[0], "follower") != 0)
       || argc != 1)
-    printf("========== fill_users_array_callback exécuté dans de mauvaises conditions");
+    printf("========== fill_users_array_callback exécuté dans de mauvaises conditions\n");
   json_object_array_add(ar, json_object_new_string(argv[0]));
   return 0;
 }
@@ -71,7 +71,7 @@ int fill_users_array_callback(void *jarray, int argc, char **argv, char **colNam
 int fill_tags_array_callback(void *jarray, int argc, char **argv, char **colName) {
   json_object *ar = (json_object *)jarray;
   if (strcmp(colName[0], "tag") != 0 || argc != 1)
-    printf("========== fill_tags_array_callback exécuté dans de mauvaises conditions");
+    printf("========== fill_tags_array_callback exécuté dans de mauvaises conditions\n");
   json_object_array_add(ar, json_object_new_string(argv[0]));
   return 0;
 }
@@ -82,7 +82,7 @@ int fill_tags_array_callback(void *jarray, int argc, char **argv, char **colName
 int fill_objects_array_callback(void *jarray, int argc, char **argv, char **colName) {
   json_object *ar = (json_object *)jarray;
   if (strcmp(colName[0], "id") != 0 || argc != 5)
-    printf("========== fill_objects_array_callback exécuté dans de mauvaises conditions");
+    printf("========== fill_objects_array_callback exécuté dans de mauvaises conditions\n");
 
   json_object *retweeter;
   if (argv[5] == NULL) {
@@ -719,7 +719,7 @@ json_object *get_gazou(json_object *req, sqlite3 *db) {
 **********************************************************************/
 
 json_object *not_implemented(json_object *req, sqlite3 *db) {
-  printf("Not implemented, req: %s, db: %p",
+  printf("Not implemented, req: %s, db: %p\n",
       json_object_to_json_string(req), db);
   return create_answer(req, SPEC_ERR_NOT_IMPLEMENTED);
 }
