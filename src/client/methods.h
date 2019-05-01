@@ -23,6 +23,7 @@ int follow_user();
 int unfollow_user();
 int follow_tag();
 int unfollow_tag();
+int list_followed_users();
 int disconnect();
 typedef struct json_object json_object;
 

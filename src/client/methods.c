@@ -21,7 +21,7 @@ request_function functions[] = {
         not_implemented,    //"Relayer un gazouilli         ",
         follow_user,        //"Suivre un utilisateur        ",
         unfollow_user,      //"Ne plus suivre un utilisateur",
-        not_implemented,    //"Utilisateurs suivis          ",
+        list_followed_users,//"Utilisateurs suivis          ",
         not_implemented,    //"Mes Abonnés                  ",
         follow_tag,         //"Suivre une thématique        ",
         unfollow_tag,       //"Ne plus suivre une thématique",
@@ -399,6 +399,51 @@ int unfollow_tag(){
     json_object_put(result_params);
     return error_code;
 
+}
+
+int list_followed_users(){
+    // Création de la requête
+    json_object* request = create_request("list_followed_users");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:{
+            json_object* followed_users_json = json_object_object_get(result_params, "list_of_users");
+            array_list* list_of_followed_users = json_object_get_array(followed_users_json);
+
+            for (int i = 0; i < (int)array_list_length(list_of_followed_users); i++) {
+                json_object* item = array_list_get_idx(list_of_followed_users, i);
+                const char* followed = json_object_get_string(item);
+                printf("%s\n", followed);
+            }
+
+
+            print_message(SUCCESS, "Liste des utilisateurs suivis :\n");
+            break;}
+
+        default:
+            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
 }
 
 /**
