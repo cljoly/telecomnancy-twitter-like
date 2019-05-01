@@ -65,7 +65,7 @@ const struct addrinfo* init_connection(const struct addrinfo* server_info) {
  * @return 1 en cas d'erreur, 0 sinon
  */
 int send_message(const char* message) {
-    printf("Message json envoyé : %s\n\n", message);
+    print_message_above(DEBUG, "Message json envoyé : %s\n", message);
     if (send(sockfd, message, strlen(message), 0) == -1) {
         fprintf(stderr, "Erreur envoi message: %s", strerror(errno));
         return 1;
@@ -86,12 +86,17 @@ int send_message(const char* message) {
  */
 int get_response_result(unsigned int id, json_object** result) {
     json_object* response = get_response_object();
+    if( response == NULL) {
+        return UINT_MAX-1;
+    }
     int error_code = check_response(response, id);
     if (error_code != 0) {
         *result = NULL;
+        json_object_put(response);
         return error_code;
     } else {
-        *result = json_object_object_get(response, "params");
+        json_object_deep_copy(json_object_object_get(response, "params"), result, NULL);
+        json_object_put(response);
         return 0;
     }
 }
@@ -124,6 +129,10 @@ json_object* get_response_object() {
         error = json_tokener_get_error(tokener);
 
     } while (response == NULL && error == json_tokener_continue);
+
+    json_tokener_free(tokener);
+
+    print_message_above(DEBUG, "Réponse json reçue : %s\n", json_object_to_json_string(response));
 
     return response;
 }
@@ -192,7 +201,7 @@ int main(int argc, char* argv[]) {
     init_connection(address_info_result);
 
     clear_all_terminal();
-    printTitle();
+    print_title();
     while (1) {
         // récupération de la commande utilisateur
         unsigned int method_id = prompt_user(cookie);
@@ -206,7 +215,9 @@ int main(int argc, char* argv[]) {
 
         // Appel de la fonction
         int return_code = function();
-        if (return_code != 0) {
+        if (return_code == 1) {
+            print_message_above(ERROR, "Impossible d'effectuer la commande.\n");
+        }else if( return_code != 0) {
             exit(return_code);
         }
     }

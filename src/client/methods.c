@@ -3,6 +3,7 @@
 #include "client.h"
 #include "tools.h"
 #include <json.h>
+#include <limits.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -51,7 +52,9 @@ int create_account() {
             NULL
     };
     printf("Création d'un compte\n\n");
-    fill_request(request, params);
+    if( fill_request(request, params) != 0) {
+        return 1;
+    }
     if (send_message(json_object_to_json_string(request)) != 0) {
         return 1;
     }
@@ -617,7 +620,7 @@ int relay_gazou(){
             json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
             array_list* list_of_gazous = json_object_get_array(gazous_json);
 
-            print_message_below(SUCCESS, "Liste des gazouillis reçus :\n");
+            print_message_below(SUCCESS, "Liste des gazouillis relayables :\n");
             for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
                 json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
                 print_gazou(gazou_json);
@@ -627,12 +630,16 @@ int relay_gazou(){
             json_object* request2 = create_request("relay_gazou");
             const unsigned int request2_id = (unsigned int) json_object_get_int(json_object_object_get(request2, "id"));
 
-            printf("Relayer in gazouilli :\n\n");
+
+
+            printf("\033[1;1H");
+            printf("Relayer un gazouilli\n\n");
+            clear_above_below_positions();
 
             char buf[MAXDATASIZE];
             json_object* params = json_object_new_object();
             memset(buf, 0, MAXDATASIZE);
-            if (prompt_user_for_parameter("id du gazouilli à relayer", buf) != 0) {
+            if (prompt_user_for_parameter("ID du gazouilli à relayer", buf) != 0) {
                 return 1;
             }
             if (json_object_object_add(params, "id_gazouilli", json_object_new_int(atoi(buf))) != 0) {
@@ -684,6 +691,7 @@ int relay_gazou(){
             print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
+    clear_terminal_except_header();
     return error_code;
 }
 
@@ -695,6 +703,7 @@ int relay_gazou(){
  */
 int disconnect() {
     cookie = -1;
+    print_title();
     return 0;
 }
 
@@ -733,6 +742,7 @@ int fill_request(json_object* request, const char** params_name) {
     for (int i = 0; params_name[i] != NULL; i++) {
         memset(buf, 0, MAXDATASIZE);
         if (prompt_user_for_parameter(params_name[i], buf) != 0) {
+            print_message_above(ERROR, "Veuillez entrer une valeur pour tous les champs.");
             return 1;
         }
         if (json_object_object_add(params, params_name[i], json_object_new_string(buf)) != 0) {
