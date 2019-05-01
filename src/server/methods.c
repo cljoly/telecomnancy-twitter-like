@@ -791,9 +791,6 @@ json_object *relay_gazou(json_object *req, sqlite3 *db) {
 
   // Réponse
   return create_answer(req, 0);
-
-  json_object *answer = create_answer(req, 0);
-  return answer;
 }
 
 /**********************************************************************
