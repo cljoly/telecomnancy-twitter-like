@@ -19,7 +19,7 @@ request_function functions[] = {
         connect_server,
         send_gazou,
         not_implemented,
-        not_implemented,
+        follow_user,
         not_implemented,
         not_implemented,
         not_implemented,
@@ -192,7 +192,6 @@ int send_gazou(){
 
     json_object* params = json_object_new_object();
     json_object_object_add(params, "gazouilli", gazouilli);
-    json_object_object_add(params, "cookie", json_object_new_int(cookie));
 
     json_object_object_add(request, "params", params);
 
@@ -230,6 +229,53 @@ int send_gazou(){
     // free du résultat
     json_object_put(result_params);
     return error_code;
+}
+
+int follow_user(){
+    // Création de la requête
+    json_object* request = create_request("follow_user");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+    const char* params[] = {
+            "username",
+            NULL
+    };
+    printf("Suivre un nouvel utilisateur :\n\n");
+    fill_request(request, params);
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:
+            cookie = json_object_get_int(json_object_object_get(result_params, "cookie"));
+            print_message(SUCCESS, "Utilisateur suivi !\n");
+            break;
+
+        case 1:
+            print_message(ERROR, "Le nom d'utilisateur que vous voulez suivre n'existe pas.\n");
+            error_code = 0;
+            break;
+
+        case 2:
+            print_message(ERROR, "Vous êtes déjà abonné à cet utilisateur.\n");
+            error_code = 0;
+            break;
+
+        default:
+            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+
 }
 
 /**
@@ -282,6 +328,9 @@ int fill_request(json_object* request, const char** params_name) {
         if (json_object_object_add(params, params_name[i], json_object_new_string(buf)) != 0) {
             return 2;
         }
+    }
+    if (cookie != -1){
+        json_object_object_add(params, "cookie", json_object_new_int(cookie));
     }
     if (json_object_object_add(request, "params", params) != 0) {
         return 3;
