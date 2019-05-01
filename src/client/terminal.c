@@ -15,16 +15,16 @@ static char* commands[] = {
         "Quitter",
         "Créer un compte",
         "Se connecter",
-        "Envoyer un gazouilli       ",
-        "Relayer un gazouilli",
-        "Suivre un utilisateur",
+        "Envoyer un gazouilli         ",
+        "Relayer un gazouilli         ",
+        "Suivre un utilisateur        ",
         "Ne plus suivre un utilisateur",
-        "Utilisateurs suivis",
-        "Mes Abonnés",
-        "Suivre une thématique",
+        "Utilisateurs suivis          ",
+        "Mes Abonnés                  ",
+        "Suivre une thématique        ",
         "Ne plus suivre une thématique",
-        "Thématique suivies ",
-        "Déconnexion"
+        "Thématique suivies           ",
+        "Déconnexion                  "
 };
 
 static const unsigned int commands_count = sizeof(commands) / sizeof(char*);
@@ -60,23 +60,9 @@ void print_menu(int connected) {
     unsigned int printed_line_chars = 0;
     for (unsigned int i = first_command_index; i <= last_command_index; i++) {
         printed_line_chars += 5 + strlen(commands[i]);
-        printf("%2d - %s", i , commands[i]);
-
-        // S'il faut encore afficher une commande
-        if (i + 1 < commands_count) {
-            // S'il y a la place pour l'afficher
-            if (printed_line_chars + 4 + 5 + strlen(commands[i + 1]) < w.ws_col) {
-                printf("\t");
-
-                // Ajout de la longueur de la tabulation
-                while (printed_line_chars % 4 != 0) {
-                    printed_line_chars++;
-                }
-            } else {
-                // Sinon, nouvelle ligne
-                printf("\n");
-                printed_line_chars = 0;
-            }
+        printf("%2d - %s\t", i , commands[i]);
+        if(((i+1-first_command_index) % 5 == 0) && (i+1 <= last_command_index)) {
+            printf("\n");
         }
     }
     printf("\n");
@@ -128,9 +114,9 @@ unsigned int prompt_user(int connected) {
     print_menu(connected);
     // prompt
     //printf("\e[13;39H\e[2J");
-    printf("\033[13;1H");
+    printf("\033[14;1H");
     printf("\n");
-    printf("\033[13;1H");
+    printf("\033[14;1H");
     printf("> Quelle action voulez-vous effectuer ? ");
 
     // Lecture des données
