@@ -56,6 +56,7 @@ int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
   return 0;
 }
 
+// *jarray doit être un objet JSON de type tableau
 int fill_users_array_callback(void *jarray, int argc, char **argv, char **colName) {
   json_object *ar = (json_object *)jarray;
   if ((strcmp(colName[0], "followed") != 0
@@ -66,10 +67,21 @@ int fill_users_array_callback(void *jarray, int argc, char **argv, char **colNam
   return 0;
 }
 
+// *jarray doit être un objet JSON de type tableau
 int fill_tags_array_callback(void *jarray, int argc, char **argv, char **colName) {
   json_object *ar = (json_object *)jarray;
   if (strcmp(colName[0], "tags") != 0 || argc != 1)
     printf("========== fill_tags_array_callback exécuté dans de mauvaises conditions");
+  json_object_array_add(ar, json_object_new_string(argv[0]));
+  return 0;
+}
+
+// *jarray doit être un objet JSON de type tableau
+// Remplie le tableau de string contenant les identifiants (qui sont des nombres…)
+int fill_ids_array_callback(void *jarray, int argc, char **argv, char **colName) {
+  json_object *ar = (json_object *)jarray;
+  if (strcmp(colName[0], "id") != 0 || argc != 1)
+    printf("========== fill_ids_array_callback exécuté dans de mauvaises conditions");
   json_object_array_add(ar, json_object_new_string(argv[0]));
   return 0;
 }
@@ -140,6 +152,42 @@ void new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
       gazou_id, tag_name);
     exec_db(db, stmt, NULL, NULL);
   }
+}
+
+// Remplissage d’un tableau json contenant des ids de gazouilli par des objets gazouillis à partir de la base de donnée
+void fill_gazou_array_from_string_id_array(sqlite3 *db, json_object *array_ids) {
+  // TODO Implement this
+  printf("%p %p\n", db, array_ids);
+  /*
+  // Ajout des thématiques
+  char stmt[BUFSIZE];
+  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
+    json_object *item = array_list_get_idx(list_of_tags, i);
+    const char *tag_name = json_object_get_string(item);
+    printf("list_of_tags[%i]: %s\n", i, tag_name);
+    sprintf(stmt,
+      "INSERT OR IGNORE INTO tag(name) VALUES('%s');",
+      tag_name);
+    exec_db(db, stmt, NULL, NULL);
+  }
+
+  // Ajouter le gazouilli
+  sprintf(stmt,
+      "INSERT INTO gazou(content, date, author) VALUES('%s', '%s', '%s');",
+      gazou_content, date, author);
+  exec_db(db, stmt, NULL, NULL);
+  int gazou_id = sqlite3_last_insert_rowid(db);
+
+  // Le lier aux thématiques
+  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
+    json_object *item = array_list_get_idx(list_of_tags, i);
+    const char *tag_name = json_object_get_string(item);
+    sprintf(stmt,
+      "INSERT OR IGNORE INTO gazou_tag(gazou_id, tag) VALUES(%i, '%s');",
+      gazou_id, tag_name);
+    exec_db(db, stmt, NULL, NULL);
+  }
+  */
 }
 
 /**********************************************************************
@@ -614,6 +662,56 @@ json_object *list_my_followers(json_object *req, sqlite3 *db) {
   return answer;
 }
 
+/**********************************************************************
+*                         Méthode get_gazou                          *
+**********************************************************************/
+
+json_object *get_gazou(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  int max_nb_gazou = json_object_get_int(
+      json_object_object_get(params, "nb_gazou"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Récupérations des ids des gazouillis
+  sprintf(stmt,
+      "SELECT DISTINCT id FROM gazou "\
+      "LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id "\
+      "LEFT JOIN relay ON gazou.id = relay.gazou_id "\
+      "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
+      "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%s') "\
+      "OR retweeter IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
+      "ORDER BY date "\
+      "LIMIT %i;",
+      user, user, user, max_nb_gazou);
+  json_object *gazou_ids = json_object_new_array();
+  exec_db(db, stmt, &fill_ids_array_callback, gazou_ids);
+
+  // Remplacement des id sous forme de string par des objets gazouillis
+  fill_gazou_array_from_string_id_array(db, gazou_ids);
+
+  // Réponse
+  json_object *answer = create_answer(req, 0);
+  const char *answer_params[] = {
+    "list_of_gazous",
+    NULL
+  };
+  json_object *answer_values[] = {
+    gazou_ids,
+    NULL
+  };
+  fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
 
 /**********************************************************************
 *              Pour ce qui n’est pas encore implémenté               *
@@ -642,6 +740,7 @@ static char *method_names[] = {
   "list_followed_users",
   "list_followed_tags",
   "list_my_followers",
+  "get_gazou",
   NULL
 };
 
@@ -657,6 +756,7 @@ static method_func_p method_funcs[] = {
   &list_followed_users,
   &list_followed_tags,
   &list_my_followers,
+  &get_gazou,
   &not_implemented
 };
 
