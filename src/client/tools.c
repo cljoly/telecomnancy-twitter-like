@@ -1,9 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "tools.h"
 
 size_t read_stdin(char* input, int max_size){
+    if(feof(stdin)) {
+        exit(0);
+    }
     fgets(input, max_size, stdin);
 
     const size_t nLen = strlen(input);
