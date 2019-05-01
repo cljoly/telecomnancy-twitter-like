@@ -8,7 +8,7 @@ CREATE TABLE "user" (
 
 -- Tables des messages
 CREATE TABLE "gazou" (
-    id INT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "date"  TEXT,
     "author"  TEXT,
     "content"  TEXT,
