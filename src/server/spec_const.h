@@ -26,7 +26,9 @@
 #define SPEC_ERR_ALREADY_UNFOLLOWING_USERNAME   2
 // unfollow_tag
 #define SPEC_ERR_ALREADY_UNFOLLOWING_TAG   1
-// TODO Continuer avec la spec
+// relay_gazou
+#define SPEC_ERR_INVALID_ID_RELAY  1
+#define SPEC_ERR_REALAYED_ALREADY   2
 
 // Longueur du texte d’un gazouilli
 #define SPEC_GAZOU_SIZE 140

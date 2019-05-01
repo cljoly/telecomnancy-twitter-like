@@ -14,7 +14,7 @@ CREATE TABLE "gazou" (
     "content"  TEXT,
     FOREIGN KEY(author) REFERENCES user(name),
     UNIQUE ("date","author", "content")
-    ON CONFLICT IGNORE
+    ON CONFLICT ABORT
 );
 
 -- Tables des thématiques
@@ -30,7 +30,7 @@ CREATE TABLE "gazou_tag" (
     FOREIGN KEY("gazou_id") REFERENCES gazou("id"),
     FOREIGN KEY("tag") REFERENCES tag("name"),
     UNIQUE ("gazou_id","tag")
-    ON CONFLICT IGNORE
+    ON CONFLICT ABORT
 );
 
 -- Qui est abooné à qui
@@ -40,7 +40,7 @@ CREATE TABLE "user_subscription" (
     FOREIGN KEY("followed") REFERENCES user(name),
     FOREIGN KEY("follower") REFERENCES user(name),
     UNIQUE ("follower","followed")
-    ON CONFLICT IGNORE
+    ON CONFLICT ABORT
 );
 
 -- Qui est abonné à quel thématique (la thématique n’est pas obligé de
@@ -50,7 +50,7 @@ CREATE TABLE "tag_subscription" (
     "follower" TEXT,
     FOREIGN KEY("follower") REFERENCES user(name),
     UNIQUE ("follower","tag")
-    ON CONFLICT IGNORE
+    ON CONFLICT ABORT
 );
 
 -- Table des retweet, comme une table d’association un peu
@@ -60,6 +60,6 @@ CREATE TABLE "relay" (
     FOREIGN KEY("gazou_id") REFERENCES gazou("id"),
     FOREIGN KEY("retweeter") REFERENCES user("name"),
     UNIQUE ("gazou_id","retweeter")
-    ON CONFLICT IGNORE
+    ON CONFLICT ABORT
 );
 

@@ -732,6 +732,71 @@ json_object *list_my_followers(json_object *req, sqlite3 *db) {
 }
 
 /**********************************************************************
+*                        Méthode relay_gazou                         *
+**********************************************************************/
+
+json_object *relay_gazou(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+  int id = json_object_get_int(
+      json_object_object_get(params, "id_gazouilli"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Vérifions que l’id soit valide
+  sprintf(stmt,
+      "SELECT * FROM gazou "\
+      " WHERE id='%i';",
+      id);
+  int nb = 0;
+  int edr = exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (edr != 0) {
+    return create_answer(req, SPEC_ERR_INTERNAL_SRV);
+  }
+  if (nb == 0) {
+    printf("Id invalide %i\n", id);
+    return create_answer(req, SPEC_ERR_INVALID_ID_RELAY);
+  }
+
+  // Vérifions qu’on n’ai pas déjà relayé le gazouilli
+  sprintf(stmt,
+      "SELECT * FROM relay "\
+      " WHERE gazou_id='%i' AND retweeter='%s';",
+      id, user);
+  nb = 0;
+  edr = exec_db(db, stmt, &number_of_row_callback, &nb);
+  if (edr != 0) {
+    return create_answer(req, SPEC_ERR_INTERNAL_SRV);
+  }
+  if (nb>0) {
+    printf("Gazouillé %i déjà relayé\n", id);
+    return create_answer(req, SPEC_ERR_REALAYED_ALREADY);
+  }
+
+  // Insérons l’information de relayage
+  sprintf(stmt,
+      "INSERT INTO relay(gazou_id, retweeter) "\
+      "VALUES ('%i', '%s');",
+      id, user);
+  exec_db(db, stmt, NULL, NULL);
+  memset(stmt, '\0', BUFSIZE);
+
+  // Réponse
+  return create_answer(req, 0);
+
+  json_object *answer = create_answer(req, 0);
+  return answer;
+}
+
+/**********************************************************************
 *                         Méthode get_gazou                          *
 **********************************************************************/
 
@@ -802,7 +867,6 @@ json_object *not_implemented(json_object *req, sqlite3 *db) {
 *                        Gestion des méthodes                        *
 **********************************************************************/
 
-// TODO Compléter ça avec les autres méthodes de la spec
 static char *method_names[] = {
   "create_account",
   "connect",
@@ -816,6 +880,7 @@ static char *method_names[] = {
   "list_followed_tags",
   "list_my_followers",
   "get_gazou",
+  "relay_gazou",
   NULL
 };
 
@@ -832,6 +897,7 @@ static method_func_p method_funcs[] = {
   &list_followed_tags,
   &list_my_followers,
   &get_gazou,
+  &relay_gazou,
   &not_implemented
 };
 
