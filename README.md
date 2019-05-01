@@ -15,4 +15,35 @@ Les bibliothèques utilisées sont :
 
 ## Mode d’emploi
 
-Avant de lancer le serveur, il faut initialiser la base de donnée avec le script fourni dans src/server/init_db.sh
+Pour tout ce qui suit, cloner le dépot et aller dans le dossier cloné.
+
+Les dépendances doivent aussi avoir été installées
+
+### Lancer le client
+
+```
+make
+./client
+```
+
+### Lancer le server
+
+```
+make
+./server
+```
+
+### `clean`
+
+Pour supprimer les artefact de compilation, faire
+```
+make clean
+```
+
+### `clean_all`
+
+Pour supprimer les artefact de compilation et les données du serveur, faire
+```
+make clean_all
+```
+
