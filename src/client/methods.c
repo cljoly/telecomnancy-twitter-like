@@ -24,7 +24,7 @@ request_function functions[] = {
         not_implemented,    //"Utilisateurs suivis          ",
         not_implemented,    //"Mes Abonnés                  ",
         follow_tag,         //"Suivre une thématique        ",
-        not_implemented,    //"Ne plus suivre une thématique",
+        unfollow_tag,       //"Ne plus suivre une thématique",
         not_implemented,    //"Thématique suivies           ",
         disconnect          //"Déconnexion                  "
 };
@@ -346,6 +346,47 @@ int follow_tag(){
 
         case 1:
             print_message(ERROR, "Vous êtes déjà abonné à ce tag.\n");
+            error_code = 0;
+            break;
+
+        default:
+            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+
+}
+
+int unfollow_tag(){
+    // Création de la requête
+    json_object* request = create_request("unfollow_tag");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+    const char* params[] = {
+            "tag",
+            NULL
+    };
+    printf("Ne plus suivre un tag :\n\n");
+    fill_request(request, params);
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:
+            print_message(SUCCESS, "Vous ne suivez plus ce tag !\n");
+            break;
+
+        case 1:
+            print_message(ERROR, "Vous n'êtes pas abonné à ce tag.\n");
             error_code = 0;
             break;
 
