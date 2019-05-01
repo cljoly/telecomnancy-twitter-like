@@ -77,12 +77,28 @@ int fill_tags_array_callback(void *jarray, int argc, char **argv, char **colName
 }
 
 // *jarray doit être un objet JSON de type tableau
-// Remplie le tableau de string contenant les identifiants (qui sont des nombres…)
-int fill_ids_array_callback(void *jarray, int argc, char **argv, char **colName) {
+// Remplie le tableau d’objets gazou qui n’ont pas de tag
+// SELECT id, date, content, author, retweeter FROM …
+int fill_objects_array_callback(void *jarray, int argc, char **argv, char **colName) {
   json_object *ar = (json_object *)jarray;
-  if (strcmp(colName[0], "id") != 0 || argc != 1)
-    printf("========== fill_ids_array_callback exécuté dans de mauvaises conditions");
-  json_object_array_add(ar, json_object_new_string(argv[0]));
+  if (strcmp(colName[0], "id") != 0 || argc != 5)
+    printf("========== fill_objects_array_callback exécuté dans de mauvaises conditions");
+
+  json_object *retweeter;
+  if (argv[5] == NULL) {
+    retweeter = json_object_new_string("");
+  } else {
+    retweeter = json_object_new_string(argv[5]);
+  }
+
+  json_object *gazou_obj = json_object_new_object();
+  json_object_object_add(gazou_obj, "id", json_object_new_int(atoi(argv[0])));
+  json_object_object_add(gazou_obj, "date", json_object_new_string(argv[1]));
+  json_object_object_add(gazou_obj, "content", json_object_new_string(argv[2]));
+  json_object_object_add(gazou_obj, "author", json_object_new_string(argv[3]));
+  json_object_object_add(gazou_obj, "retweeter", retweeter);
+
+  json_object_array_add(ar, gazou_obj);
   return 0;
 }
 
@@ -154,40 +170,25 @@ void new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
   }
 }
 
-// Remplissage d’un tableau json contenant des ids de gazouilli par des objets gazouillis à partir de la base de donnée
-void fill_gazou_array_from_string_id_array(sqlite3 *db, json_object *array_ids) {
-  // TODO Implement this
-  printf("%p %p\n", db, array_ids);
-  /*
-  // Ajout des thématiques
+// Remplissage d’un tableau json contenant des objets gazouilli sans tag avec
+// les tags à partir de la base de donnée
+void fill_tags_in_gazou_array(sqlite3 *db, json_object *array_ids) {
   char stmt[BUFSIZE];
-  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
-    json_object *item = array_list_get_idx(list_of_tags, i);
-    const char *tag_name = json_object_get_string(item);
-    printf("list_of_tags[%i]: %s\n", i, tag_name);
-    sprintf(stmt,
-      "INSERT OR IGNORE INTO tag(name) VALUES('%s');",
-      tag_name);
-    exec_db(db, stmt, NULL, NULL);
-  }
+  for (int i = 0; i < (int)json_object_array_length(array_ids); i++) {
+    json_object *gazou_obj = json_object_array_get_idx(array_ids, i);
+    int id = json_object_get_int(json_object_object_get(gazou_obj, "id"));
+    printf("avant insertion des tags, array_ids[%i]: %s\n",
+        i, json_object_to_json_string(gazou_obj));
 
-  // Ajouter le gazouilli
-  sprintf(stmt,
-      "INSERT INTO gazou(content, date, author) VALUES('%s', '%s', '%s');",
-      gazou_content, date, author);
-  exec_db(db, stmt, NULL, NULL);
-  int gazou_id = sqlite3_last_insert_rowid(db);
+    // Récupérations des thématiques associées
+    sprintf(stmt, "SELECT tag FROM gazou_tag WHERE gazou_id='%i';", id);
+    json_object *gazou_obj_tags = json_object_new_array();
+    exec_db(db, stmt, &fill_tags_array_callback, gazou_obj_tags);
 
-  // Le lier aux thématiques
-  for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
-    json_object *item = array_list_get_idx(list_of_tags, i);
-    const char *tag_name = json_object_get_string(item);
-    sprintf(stmt,
-      "INSERT OR IGNORE INTO gazou_tag(gazou_id, tag) VALUES(%i, '%s');",
-      gazou_id, tag_name);
-    exec_db(db, stmt, NULL, NULL);
+    json_object_object_add(gazou_obj, "list_of_tags", gazou_obj_tags);
+    printf("après insertion des tags, array_ids[%i]: %s\n",
+        i, json_object_to_json_string(gazou_obj));
   }
-  */
 }
 
 /**********************************************************************
@@ -684,20 +685,20 @@ json_object *get_gazou(json_object *req, sqlite3 *db) {
   char stmt[BUFSIZE];
   // Récupérations des ids des gazouillis
   sprintf(stmt,
-      "SELECT DISTINCT id FROM gazou "\
+      "SELECT DISTINCT id, date, content, author, retweeter FROM gazou "\
       "LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id "\
       "LEFT JOIN relay ON gazou.id = relay.gazou_id "\
       "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
       "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%s') "\
       "OR retweeter IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
-      "ORDER BY date "\
+      "ORDER BY date DESC "\
       "LIMIT %i;",
       user, user, user, max_nb_gazou);
   json_object *gazou_ids = json_object_new_array();
-  exec_db(db, stmt, &fill_ids_array_callback, gazou_ids);
+  exec_db(db, stmt, &fill_objects_array_callback, gazou_ids);
 
   // Remplacement des id sous forme de string par des objets gazouillis
-  fill_gazou_array_from_string_id_array(db, gazou_ids);
+  fill_tags_in_gazou_array(db, gazou_ids);
 
   // Réponse
   json_object *answer = create_answer(req, 0);
