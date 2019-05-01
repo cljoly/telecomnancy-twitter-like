@@ -43,11 +43,11 @@ CREATE TABLE "user_subscription" (
     ON CONFLICT IGNORE
 );
 
--- Qui est abonné à quel thématique
+-- Qui est abonné à quel thématique (la thématique n’est pas obligé de
+    -- préexister, donc pas de foreign key)
 CREATE TABLE "tag_subscription" (
     "tag" TEXT,
     "follower" TEXT,
-    FOREIGN KEY("tag") REFERENCES tag(name),
     FOREIGN KEY("follower") REFERENCES user(name),
     UNIQUE ("follower","tag")
     ON CONFLICT IGNORE

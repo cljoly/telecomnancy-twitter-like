@@ -56,6 +56,24 @@ int cookie_callback(void *cookie, int argc, char **argv, char **colName) {
   return 0;
 }
 
+int fill_users_array_callback(void *jarray, int argc, char **argv, char **colName) {
+  json_object *ar = (json_object *)jarray;
+  if ((strcmp(colName[0], "followed") != 0
+        && strcmp(colName[0], "follower") != 0)
+      || argc != 1)
+    printf("========== fill_users_array_callback exécuté dans de mauvaises conditions");
+  json_object_array_add(ar, json_object_new_string(argv[0]));
+  return 0;
+}
+
+int fill_tags_array_callback(void *jarray, int argc, char **argv, char **colName) {
+  json_object *ar = (json_object *)jarray;
+  if (strcmp(colName[0], "tags") != 0 || argc != 1)
+    printf("========== fill_tags_array_callback exécuté dans de mauvaises conditions");
+  json_object_array_add(ar, json_object_new_string(argv[0]));
+  return 0;
+}
+
 /**********************************************************************
 *                    Autres fonctions génériques                     *
 **********************************************************************/
@@ -485,6 +503,117 @@ json_object *unfollow_tag(json_object *req, sqlite3 *db) {
   return answer;
 }
 
+/**********************************************************************
+*                     Méthode list_followed_user                     *
+**********************************************************************/
+
+json_object *list_followed_users(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Récupérations des noms des utilisateurs suivis
+  sprintf(stmt, "SELECT followed FROM user_subscription WHERE follower='%s';", user);
+  json_object *followed_users = json_object_new_array();
+  exec_db(db, stmt, &fill_users_array_callback, followed_users);
+
+  // Réponse
+  json_object *answer = create_answer(req, 0);
+  const char *answer_params[] = {
+    "list_of_users",
+    NULL
+  };
+  json_object *answer_values[] = {
+    followed_users,
+    NULL
+  };
+  fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
+
+/**********************************************************************
+*                     Méthode list_followed_tags                     *
+**********************************************************************/
+
+json_object *list_followed_tags(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Récupérations des thématiques suivies
+  sprintf(stmt, "SELECT tag FROM tag_subscription WHERE follower='%s';", user);
+  json_object *followed_tags = json_object_new_array();
+  exec_db(db, stmt, &fill_tags_array_callback, followed_tags);
+
+  // Réponse
+  json_object *answer = create_answer(req, 0);
+  const char *answer_params[] = {
+    "list_of_tags",
+    NULL
+  };
+  json_object *answer_values[] = {
+    followed_tags,
+    NULL
+  };
+  fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
+
+/**********************************************************************
+*                     Méthode list_my_followers                      *
+**********************************************************************/
+
+json_object *list_my_followers(json_object *req, sqlite3 *db) {
+  json_object *params = json_object_object_get(req, "params");
+  int cookie = json_object_get_int(
+      json_object_object_get(params, "cookie"));
+
+  // Récupération du nom utilisateur
+  char user[USERNAME_MAXSIZE];
+  int r = user_name_from_cookie(db, cookie, user);
+  if (r) {
+    printf("Cookie incorrect\n");
+    return create_answer(req, SPEC_ERR_INCORRECT_COOKIE);
+  }
+
+  char stmt[BUFSIZE];
+  // Récupérations des abonnés
+  sprintf(stmt, "SELECT follower FROM user_subscription WHERE followed='%s';", user);
+  json_object *followed_users = json_object_new_array();
+  exec_db(db, stmt, &fill_users_array_callback, followed_users);
+
+  // Réponse
+  json_object *answer = create_answer(req, 0);
+  const char *answer_params[] = {
+    "list_of_followers",
+    NULL
+  };
+  json_object *answer_values[] = {
+    followed_users,
+    NULL
+  };
+  fill_answer(answer, answer_params, answer_values);
+  return answer;
+}
+
 
 /**********************************************************************
 *              Pour ce qui n’est pas encore implémenté               *
@@ -510,6 +639,9 @@ static char *method_names[] = {
   "follow_tag",
   "unfollow_user",
   "unfollow_tag",
+  "list_followed_users",
+  "list_followed_tags",
+  "list_my_followers",
   NULL
 };
 
@@ -522,6 +654,9 @@ static method_func_p method_funcs[] = {
   &follow_tag,
   &unfollow_user,
   &unfollow_tag,
+  &list_followed_users,
+  &list_followed_tags,
+  &list_my_followers,
   &not_implemented
 };
 
