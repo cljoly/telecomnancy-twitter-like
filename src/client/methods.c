@@ -426,14 +426,13 @@ int list_followed_users(){
             json_object* followed_users_json = json_object_object_get(result_params, "list_of_users");
             array_list* list_of_followed_users = json_object_get_array(followed_users_json);
 
+            print_message_below(SUCCESS, "Liste des utilisateurs suivis :\n");
             for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
                 json_object* item = array_list_get_idx(list_of_followed_users, i);
                 const char* followed = json_object_get_string(item);
                 printf("%s\n", followed);
             }
 
-
-            print_message_above(SUCCESS, "Liste des utilisateurs suivis :\n");
             break;}
 
         default:

@@ -29,15 +29,25 @@ static char* commands[] = {
 
 static const unsigned int commands_count = sizeof(commands) / sizeof(char*);
 
+/**
+ * Efface l'entièreté du terminal, et place le curseur du print au début de la première ligne
+ */
 void clear_all_terminal() {
     printf("\e[1;1H\e[2J");
 }
 
+/**
+ * Efface le terminal en concervant le header, et place le curseur du print au début de la ligne 9
+ */
 void clear_terminal_exceptHeader() {
     printf("\033[9;1H");
 }
 
-void print_menu(int connected) {
+/**
+ * Affiche le menu des commandes possibles en fonction de l'état de l'utilisateur
+ * @param cookie Cookie de l'utilisateur. -1 signifie que l'utilisateur n'a pas de cookie et n'est pas connecté.
+ */
+void print_menu(int cookie) {
     clear_terminal_exceptHeader();
 
     // get terminal info
@@ -47,7 +57,7 @@ void print_menu(int connected) {
 
     unsigned int first_command_index = 0;
     unsigned int last_command_index = 2;
-    if (connected != -1) {
+    if (cookie != -1) {
         first_command_index = 3;
         last_command_index = commands_count - 1;
     }
@@ -73,6 +83,13 @@ void print_menu(int connected) {
     printf("\n\n");
 }
 
+/**
+ * Affiche un message en couleur, en fonction du type donné.
+ * Cette fonction utilise printf() et fonctionne de manière identique pour les paramètres autres que type.
+ * @param type Type de message
+ * @param format Format du message (comme pour printf)
+ * @param ... Paramètres éventuels de format (comme pour printf)
+ */
 void print_message(message_type_t type, const char* format, ...) {
     switch(type) {
         case SUCCESS:
@@ -104,6 +121,13 @@ void print_message(message_type_t type, const char* format, ...) {
     printf("\033[0m");
 }
 
+/**
+ * Affiche un message au dessus du menu (à partir de la ligne 8)
+ * @see print_message
+ * @param type Type de message
+ * @param format Format du message (comme pour printf)
+ * @param ... Paramètres éventuels de format (comme pour printf)
+ */
 void print_message_above(message_type_t type, const char* format, ...) {
     printf("\033[8;1H");
     va_list args;
@@ -112,6 +136,13 @@ void print_message_above(message_type_t type, const char* format, ...) {
     va_end(args);
 }
 
+/**
+ * Affiche un message en dessous du menu (à partir de la ligne 16)
+ * @see print_message
+ * @param type Type de message
+ * @param format Format du message (comme pour printf)
+ * @param ... Paramètres éventuels de format (comme pour printf)
+ */
 void print_message_below(message_type_t type, const char* format, ...) {
     printf("\033[16;1H");
     va_list args;
@@ -166,7 +197,9 @@ int prompt_user_for_parameter(const char* prompt, char* result) {
     return length == 0;
 }
 
-
+/**
+ * Affiche MyTwitter ave un ASCII art de 6 lignes
+ */
 void printTitle() {
     printf("\033[0;36m");
     printf(" __  __      _____          _ _   _\n");
