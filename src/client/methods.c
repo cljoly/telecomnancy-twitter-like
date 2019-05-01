@@ -19,7 +19,7 @@ request_function functions[] = {
         connect_server,     //"Se connecter",
         send_gazou,         //"Envoyer un gazouilli         ",
         get_gazou,          //"Gazouillis reçus             ",
-        not_implemented,    //"Relayer un gazouilli         ",
+        relay_gazou,        //"Relayer un gazouilli         ",
         follow_user,        //"Suivre un utilisateur        ",
         unfollow_user,      //"Ne plus suivre un utilisateur",
         list_followed_users,//"Utilisateurs suivis          ",
@@ -584,6 +584,102 @@ void print_gazou(json_object* gazou_json){
     const char* date = json_object_get_string(json_object_object_get(gazou_json, "date"));
     printf("%s\n", date);
     printf("\n");
+}
+
+int relay_gazou(){
+    // Création de la requête
+    json_object* request = create_request("get_gazou");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "nb_gazou", json_object_new_int(NUMBER_OF_GAZOU));
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0: {
+            json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
+            array_list* list_of_gazous = json_object_get_array(gazous_json);
+
+            print_message_below(SUCCESS, "Liste des gazouillis reçus :\n");
+            for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
+                json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
+                print_gazou(gazou_json);
+            }
+
+            // Création de la requête
+            json_object* request2 = create_request("relay_gazou");
+            const unsigned int request2_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+            printf("Relayer in gazouilli :\n\n");
+
+            char buf[MAXDATASIZE];
+            json_object* params = json_object_new_object();
+            memset(buf, 0, MAXDATASIZE);
+            if (prompt_user_for_parameter("id du gazouilli à relayer", buf) != 0) {
+                return 1;
+            }
+            if (json_object_object_add(params, "id_gazouilli", json_object_new_int(atoi(buf))) != 0) {
+                return 2;
+            }
+            if (cookie != -1){
+                json_object_object_add(params, "cookie", json_object_new_int(cookie));
+            }
+            if (json_object_object_add(request2, "params", params) != 0) {
+                return 3;
+            }
+
+            if (send_message(json_object_to_json_string(request2)) != 0) {
+                return 1;
+            }
+            // free de la requête
+            json_object_put(request2);
+
+            // Lecture et gestion de la réponse
+            json_object* result2_params = NULL;
+            int error2_code = get_response_result(request2_id, &result2_params);
+            switch (error2_code) {
+                case 0:
+                    print_message_above(SUCCESS, "Gazouilli relayé !\n");
+                    break;
+
+                case 1:
+                    print_message_above(ERROR, "Id du gazouilli invalide\n");
+                    error_code = 0;
+                    break;
+
+                case 2:
+                    print_message_above(ERROR, "Gazouilli déjà relayé\n");
+                    error_code = 0;
+                    break;
+
+                default:
+                    print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+                    break;
+            }
+
+            // free du résultat
+            json_object_put(result_params);
+            break;
+
+        }
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+    return error_code;
 }
 
 
