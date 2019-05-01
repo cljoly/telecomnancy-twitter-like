@@ -466,13 +466,11 @@ Paramètres :
 
 | Nom | Type | Description |
 |----:|:---:|:---|
-| `list_of_gazous` | Tableau de gazouillis | Liste d'objets de type gazouilli, ordonnés chronologiquement |
+| `list_of_gazous` | Tableau de gazouillis | Liste d'objets de type gazouilli, ordonnés chronologiquement (le plus récent en premier) |
 
 #### Retour avec erreur :
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
-
-
 
 ## Références
 
