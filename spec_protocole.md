@@ -458,15 +458,19 @@ Paramètres :
 |----:|:---:|:---|
 | `nb_gazou` | int | Nombre d’objets gazouillis à recevoir |
 
+On récupère au plus `nb_gazou` gazouillis.
+
 #### Retour sans erreur :
 
-Paramètres : aucun
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `list_of_gazous` | Tableau de gazouillis | Liste d'objets de type gazouilli, ordonnés chronologiquement (le plus récent en premier) |
 
 #### Retour avec erreur :
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
-
-
 
 ## Références
 
