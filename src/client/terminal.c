@@ -74,7 +74,6 @@ void print_menu(int connected) {
 }
 
 void print_message(message_type_t type, const char* format, ...) {
-    printf("\033[8;1H");
     switch(type) {
         case SUCCESS:
             // print in green
@@ -105,6 +104,23 @@ void print_message(message_type_t type, const char* format, ...) {
     printf("\033[0m");
 }
 
+void print_message_above(message_type_t type, const char* format, ...) {
+    printf("\033[8;1H");
+    va_list args;
+    va_start(args, format);
+    print_message(type, format, args);
+    va_end(args);
+}
+
+void print_message_below(message_type_t type, const char* format, ...) {
+    printf("\033[16;1H");
+    va_list args;
+    va_start(args, format);
+    print_message(type, format, args);
+    va_end(args);
+
+}
+
 /**
  * Demande à l'utilisateur l'action à effectuer et la retourne
  * Affiche le menu, en appellant \seealso print_menu()
@@ -127,10 +143,10 @@ unsigned int prompt_user(int connected) {
     char* endptr;
     unsigned int input = (unsigned int) strtoul(buf, &endptr, 10);
     if (endptr == buf) {
-        print_message(ERROR, "Veuillez entrer un numéro de commande\n");
+        print_message_above(ERROR, "Veuillez entrer un numéro de commande\n");
         return UINT_MAX;
     } else if (input > commands_count) {
-        print_message(ERROR, "Veuillez entrer une commande valide\n");
+        print_message_above(ERROR, "Veuillez entrer une commande valide\n");
         return UINT_MAX;
     } else {
         return input;

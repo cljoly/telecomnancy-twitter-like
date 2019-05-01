@@ -25,7 +25,7 @@ request_function functions[] = {
         not_implemented,    //"Mes Abonnés                  ",
         follow_tag,         //"Suivre une thématique        ",
         unfollow_tag,       //"Ne plus suivre une thématique",
-        not_implemented,    //"Thématique suivies           ",
+        list_followed_tags, //"Thématique suivies           ",
         disconnect          //"Déconnexion                  "
 };
 const unsigned int functions_count = sizeof(functions) / sizeof(request_function);
@@ -36,7 +36,7 @@ const unsigned int functions_count = sizeof(functions) / sizeof(request_function
  * @return 1
  */
 int not_implemented() {
-    print_message(FATAL_ERROR, "Commande non implémentée");
+    print_message_above(FATAL_ERROR, "Commande non implémentée");
     return 1;
 }
 
@@ -63,16 +63,16 @@ int create_account() {
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Compte créé !\n");
+            print_message_above(SUCCESS, "Compte créé !\n");
             break;
 
         case 1: //erreur de notre doc : elle est gérée, on met l'error_code à 0 et on continue
-            print_message(ERROR, "Ce nom d'utilisateur existe déjà.\n");
+            print_message_above(ERROR, "Ce nom d'utilisateur existe déjà.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -109,21 +109,21 @@ int connect_server() {
     switch (error_code) {
         case 0:
             cookie = json_object_get_int(json_object_object_get(result_params, "cookie"));
-            print_message(SUCCESS, "Connexion réussie !\n");
+            print_message_above(SUCCESS, "Connexion réussie !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Ce nom d'utilisateur n'existe pas.\n");
+            print_message_above(ERROR, "Ce nom d'utilisateur n'existe pas.\n");
             error_code = 0;
             break;
 
         case 2:
-            print_message(ERROR, "Mot de passe incorrect.\n");
+            print_message_above(ERROR, "Mot de passe incorrect.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -146,13 +146,13 @@ int send_gazou(){
 
     //Si le message tapé est vide
     if (prompt_user_for_parameter("Gazouilli", buf) != 0) {
-        print_message(ERROR, "Veuillez entrer un message non vide\n");
+        print_message_above(ERROR, "Veuillez entrer un message non vide\n");
         return 1;
     }
 
     //Si le message tapé fait plus de 140 caractères
     if (strlen(buf) > 140){
-        print_message(ERROR, "Veuillez entrer un message de moins de 140 caractères\n");
+        print_message_above(ERROR, "Veuillez entrer un message de moins de 140 caractères\n");
         return 2;
     }
 
@@ -209,21 +209,21 @@ int send_gazou(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Message envoyé !\n");
+            print_message_above(SUCCESS, "Message envoyé !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Message comportant un/des caractère(s) non supporté(s).\n");
+            print_message_above(ERROR, "Message comportant un/des caractère(s) non supporté(s).\n");
             error_code = 0;
             break;
 
         case 2:
-            print_message(ERROR, "Message trop long.\n");
+            print_message_above(ERROR, "Message trop long.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -254,21 +254,21 @@ int follow_user(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Utilisateur suivi !\n");
+            print_message_above(SUCCESS, "Utilisateur suivi !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Le nom d'utilisateur que vous voulez suivre n'existe pas.\n");
+            print_message_above(ERROR, "Le nom d'utilisateur que vous voulez suivre n'existe pas.\n");
             error_code = 0;
             break;
 
         case 2:
-            print_message(ERROR, "Vous êtes déjà abonné à cet utilisateur.\n");
+            print_message_above(ERROR, "Vous êtes déjà abonné à cet utilisateur.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -300,16 +300,16 @@ int unfollow_user(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Vous ne suivez plus l'utilisateur !\n");
+            print_message_above(SUCCESS, "Vous ne suivez plus l'utilisateur !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Vous n'êtes pas abonné à cet utilisateur.\n");
+            print_message_above(ERROR, "Vous n'êtes pas abonné à cet utilisateur.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -341,16 +341,16 @@ int follow_tag(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Tag suivi !\n");
+            print_message_above(SUCCESS, "Tag suivi !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Vous êtes déjà abonné à ce tag.\n");
+            print_message_above(ERROR, "Vous êtes déjà abonné à ce tag.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -382,16 +382,16 @@ int unfollow_tag(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Vous ne suivez plus ce tag !\n");
+            print_message_above(SUCCESS, "Vous ne suivez plus ce tag !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Vous n'êtes pas abonné à ce tag.\n");
+            print_message_above(ERROR, "Vous n'êtes pas abonné à ce tag.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -426,18 +426,61 @@ int list_followed_users(){
             json_object* followed_users_json = json_object_object_get(result_params, "list_of_users");
             array_list* list_of_followed_users = json_object_get_array(followed_users_json);
 
-            for (int i = 0; i < (int)array_list_length(list_of_followed_users); i++) {
+            for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
                 json_object* item = array_list_get_idx(list_of_followed_users, i);
                 const char* followed = json_object_get_string(item);
                 printf("%s\n", followed);
             }
 
 
-            print_message(SUCCESS, "Liste des utilisateurs suivis :\n");
+            print_message_above(SUCCESS, "Liste des utilisateurs suivis :\n");
             break;}
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+}
+
+int list_followed_tags(){
+    // Création de la requête
+    json_object* request = create_request("list_followed_tags");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:{
+            json_object* followed_users_json = json_object_object_get(result_params, "list_of_tags");
+            array_list* list_of_followed_users = json_object_get_array(followed_users_json);
+
+            print_message_below(SUCCESS, "Liste des tags suivis :\n");
+            for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
+                json_object* item = array_list_get_idx(list_of_followed_users, i);
+                const char* followed = json_object_get_string(item);
+                printf("%s\n", followed);
+            }
+            break;}
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
