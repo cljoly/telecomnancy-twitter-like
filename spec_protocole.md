@@ -263,8 +263,33 @@ Valeur des codes d'erreur :
 
 | Valeur | Description |
 |----:|:---|
-| 1 | Nom d'utilisateur inconnu |
-| 2 | Déjà abonné |
+| 1 | Id de gazouilli invalide |
+| 2 | Gazouilli déjà relayé |
+
+### Annuler le relayage d’un gazouilli : `unrelay_gazou`
+
+Sens : Client - Serveur
+
+Paramètres :
+
+| Nom | Type | Description |
+|----:|:---:|:---|
+| `id_gazouilli` | entier | Identifiant unique du gazouilli |
+| `cookie` | int | Authentifie l’utilisateur |
+
+
+#### Retour sans erreur :
+
+Paramètres : aucun
+
+#### Retour avec erreur :
+
+Valeur des codes d'erreur :
+
+| Valeur | Description |
+|----:|:---|
+| 1 | Id de gazouilli invalide |
+| 2 | Gazouilli non relayé |
 
 ### Demander à suivre un utilisateur : `follow_user`
 
