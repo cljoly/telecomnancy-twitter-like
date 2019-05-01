@@ -139,6 +139,7 @@ Voici un exemple de la structure JSON d'un Gazouilli. Elle comporte trois champs
     "id": 3,
     "content": "Bonjour #MyTwitter et #HelloWorld !",
     "author": "JeanDupont",
+    "retweeter": "AnneONyme",
     "list_of_tags": ["MyTwitter", "HelloWorld"],
     "date": "2019-03-18T17:15:00"
 }
@@ -221,7 +222,7 @@ Paramètres :
 | `gazouilli` | Gazouilli | Objet de type Gazouilli |
 | `cookie` | int | Authentifie l’utilisateur |
 
-Les champs `id` et `author` seront ignorés puisqu’ils sont définis par le
+Les champs `id`, `retweeter` et `author` seront ignorés puisqu’ils sont définis par le
 serveur.
 
 Un message sans thématique aura le tableau de tags vide, et ne sera envoyé qu'aux abonnés de l'utilisateur envoyant le gazouilli.
