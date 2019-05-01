@@ -23,9 +23,7 @@
 int number_of_row_callback(void *nb_row, int argc, char **argv, char **colName) {
   int *n = (int *)nb_row;
   // Comme la fonction callback est appelée à chaque ligne, on compte le nombre de ligne en comptant le nombre d’appel
-  printf("number_of_row_callback: nb_row: %i\n", *n);
   *n = *n+1;
-  printf("=== number_of_row_callback: nb_row: %i\n", *n);
   // Affichage du contenu des lignes pour debuggage
 	for(int i=0; i<argc; i++) {
 		printf("%s = %s\n", colName[i], argv[i] ? argv[i] : "NULL");
