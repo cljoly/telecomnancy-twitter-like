@@ -142,9 +142,9 @@ int check_response(json_object* response, unsigned int request_id) {
 
     json_object* error = json_object_object_get(response, "error");
     if (error != NULL) {
-        //const char* result_method = json_object_get_string(error);
+        const char* result_method = json_object_get_string(error);
         int error_code = json_object_get_int(json_object_object_get(response, "error_code"));
-        //fprintf(stderr, "Erreur: Message %d: Méthode %s, code: %d", response_id, result_method, error_code);
+        fprintf(stderr, "Erreur: Message %d: Méthode %s, code: %d", response_id, result_method, error_code);
         return error_code;
     }
     return 0;

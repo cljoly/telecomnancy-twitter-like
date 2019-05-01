@@ -1,12 +1,14 @@
 #include "methods.h"
 #include "terminal.h"
 #include "client.h"
+#include "tools.h"
 #include <json.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 extern int cookie;
 extern int sockfd;
@@ -15,7 +17,7 @@ request_function functions[] = {
         quit,
         create_account,
         connect_server,
-        not_implemented,
+        send_gazou,
         not_implemented,
         not_implemented,
         not_implemented,
@@ -79,6 +81,10 @@ int create_account() {
     return error_code;
 }
 
+/**
+ * Fonction permettant au client de se connecter au serveur quand il le demande
+ * @return code d'erreur ou 0 si tout se passe bien
+ */
 int connect_server() {
     // Création de la requête
     json_object* request = create_request("connect");
@@ -125,8 +131,105 @@ int connect_server() {
     json_object_put(result_params);
     return error_code;
 
+}
 
-   return 0;
+int send_gazou(){
+
+    // Création de la requête
+    json_object* request = create_request("send_gazou");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+    printf("Envoi d'un gazouilli\n\n");
+
+    //Récupération du message tapé par l'utilisateur
+    char buf[MAXDATASIZE];
+    memset(buf, 0, MAXDATASIZE);
+
+    //Si le message tapé est vide
+    if (prompt_user_for_parameter("Gazouilli", buf) != 0) {
+        print_message(ERROR, "Veuillez entrer un message non vide\n");
+        return 1;
+    }
+
+    //Si le message tapé fait plus de 140 caractères
+    if (strlen(buf) > 140){
+        print_message(ERROR, "Veuillez entrer un message de moins de 140 caractères\n");
+        return 2;
+    }
+
+
+    json_object* gazouilli = json_object_new_object();
+
+    if (json_object_object_add(gazouilli, "content", json_object_new_string(buf)) != 0) {
+        return 3;
+    }
+
+    json_object* list_of_tags = json_object_new_array();
+
+
+    //Récupération des tags dans le buffer et ajout dans list_of_tags
+    for (char* start_cursor = buf ; *start_cursor != '\0' ; start_cursor++){
+        if ((*start_cursor) == '#'){
+            char* end_cursor = start_cursor;
+            while(*end_cursor != ' ' && *end_cursor != '\0'){
+                end_cursor++;
+            }
+            if (*end_cursor == ' '){
+                *end_cursor = '\0';
+                json_object_array_add(list_of_tags, json_object_new_string(start_cursor));
+                *end_cursor = ' ';
+                start_cursor = end_cursor;
+            } else {
+                json_object_array_add(list_of_tags, json_object_new_string(start_cursor+1));
+                start_cursor = end_cursor-1;
+            }
+        }
+    }
+
+    json_object_object_add(gazouilli, "list_of_tags", list_of_tags);
+    char buffer[26] = {'\0'};
+    get_iso_time_now(buffer);
+    json_object_object_add(gazouilli, "date", json_object_new_string(buffer));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "gazouilli", gazouilli);
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+
+    json_object_object_add(request, "params", params);
+
+    //Envoie de la requête
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:
+            print_message(SUCCESS, "Message envoyé !\n");
+            break;
+
+        case 1:
+            print_message(ERROR, "Message comportant un/des caractère(s) non supporté(s).\n");
+            error_code = 0;
+            break;
+
+        case 2:
+            print_message(ERROR, "Message trop long.\n");
+            error_code = 0;
+            break;
+
+        default:
+            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
 }
 
 /**
