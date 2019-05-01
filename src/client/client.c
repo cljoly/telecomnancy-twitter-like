@@ -65,6 +65,7 @@ const struct addrinfo* init_connection(const struct addrinfo* server_info) {
  * @return 1 en cas d'erreur, 0 sinon
  */
 int send_message(const char* message) {
+    printf("Message json envoyé : %s\n\n", message);
     if (send(sockfd, message, strlen(message), 0) == -1) {
         fprintf(stderr, "Erreur envoi message: %s", strerror(errno));
         return 1;
