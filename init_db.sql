@@ -53,4 +53,13 @@ CREATE TABLE "tag_subscription" (
     ON CONFLICT IGNORE
 );
 
--- TODO Table des retweet par exemple avec (gazou_id, relayeur)
+-- Table des retweet, comme une table d’association un peu
+CREATE TABLE "relay" (
+    "gazou_id" INT,
+    "retweeter"  TEXT,
+    FOREIGN KEY("gazou_id") REFERENCES gazou("id"),
+    FOREIGN KEY("retweeter") REFERENCES user("name"),
+    UNIQUE ("gazou_id","retweeter")
+    ON CONFLICT IGNORE
+);
+
