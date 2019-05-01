@@ -578,7 +578,12 @@ int get_gazou(){
 void print_gazou(json_object* gazou_json){
     int id = json_object_get_int(json_object_object_get(gazou_json, "id"));
     const char* author = json_object_get_string(json_object_object_get(gazou_json, "author"));
-    printf("%d - %s\n", id, author);
+    printf("%d - %s", id, author);
+    const char* relay_author = json_object_get_string(json_object_object_get(gazou_json, "retweeter"));
+    if (relay_author[0] != '\0'){
+        printf("- relayé par %s", relay_author);
+    }
+    printf("\n");
     const char* content = json_object_get_string(json_object_object_get(gazou_json, "content"));
     printf("%s\n", content);
     const char* date = json_object_get_string(json_object_object_get(gazou_json, "date"));
@@ -620,7 +625,7 @@ int relay_gazou(){
 
             // Création de la requête
             json_object* request2 = create_request("relay_gazou");
-            const unsigned int request2_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+            const unsigned int request2_id = (unsigned int) json_object_get_int(json_object_object_get(request2, "id"));
 
             printf("Relayer in gazouilli :\n\n");
 
