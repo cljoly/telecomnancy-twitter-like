@@ -70,7 +70,7 @@ int fill_users_array_callback(void *jarray, int argc, char **argv, char **colNam
 // *jarray doit être un objet JSON de type tableau
 int fill_tags_array_callback(void *jarray, int argc, char **argv, char **colName) {
   json_object *ar = (json_object *)jarray;
-  if (strcmp(colName[0], "tags") != 0 || argc != 1)
+  if (strcmp(colName[0], "tag") != 0 || argc != 1)
     printf("========== fill_tags_array_callback exécuté dans de mauvaises conditions");
   json_object_array_add(ar, json_object_new_string(argv[0]));
   return 0;
