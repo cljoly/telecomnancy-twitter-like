@@ -325,8 +325,8 @@ int unfollow_user(){
  * @return
  */
 int disconnect() {
-    close(sockfd);
-    exit(0);
+    cookie = -1;
+    return 0;
 }
 
 /**
