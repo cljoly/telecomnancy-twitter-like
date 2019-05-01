@@ -21,6 +21,7 @@ int connect_server();
 int send_gazou();
 int follow_user();
 int unfollow_user();
+int follow_tag();
 int disconnect();
 typedef struct json_object json_object;
 
