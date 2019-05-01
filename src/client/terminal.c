@@ -163,3 +163,15 @@ int prompt_user_for_parameter(const char* prompt, char* result) {
     //Si la longueur vaut 0, c'est une erreur
     return length == 0;
 }
+
+
+void printTitle() {
+    printf("\033[0;36m");
+    printf(" __  __      _____          _ _   _\n");
+    printf("|  \\/  |_   |_   _|_      _(_) |_| |_ ___ _ __\n");
+    printf("| |\\/| | | | || | \\ \\ /\\ / / | __| __/ _ \\ '__|\n");
+    printf("| |  | | |_| || |  \\ V  V /| | |_| ||  __/ |\n");
+    printf("|_|  |_|\\__, ||_|   \\_/\\_/ |_|\\__|\\__\\___|_|\n");
+    printf("        |___/\n");
+    printf("\033[0m");
+}
