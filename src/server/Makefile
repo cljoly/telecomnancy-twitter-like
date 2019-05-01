@@ -22,7 +22,7 @@ SOURCES     := $(shell find $(SRCDIR) -type f -name '*.$(SRCEXT)')
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
 #Default Make
-all: directories $(TARGET) db.sqlite3
+all: directories $(TARGET)
 
 #test
 test: all test.sh
@@ -56,7 +56,5 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 #Non-File Targets
 .PHONY: all remake clean cleaner directories
 
-# Script d’initialisation de la base de donnée
-db.sqlite3:
-	bash init_db.sh
+
 
