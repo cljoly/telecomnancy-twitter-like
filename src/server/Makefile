@@ -12,7 +12,7 @@ SRCEXT      := c
 OBJEXT      := o
 
 #Flags and Libraries
-CFLAGS      := -Wall -Werror -Wextra -Wformat -g -I../../lib/json-c/include
+CFLAGS      := -Wall -Werror -Wextra -Wformat -g -I../../lib/json-c/include -I../../lib/sqlite3/include
 LIB         := ../../lib/json-c/lib/libjson-c.so ../../lib/sqlite3/lib/libsqlite3.so
 
 #---------------------------------------------------------------------------------
