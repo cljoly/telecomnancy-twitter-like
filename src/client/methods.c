@@ -16,20 +16,20 @@ extern int sockfd;
 extern char* username;
 
 request_function functions[] = {
-        quit,               //"Quitter",
-        create_account,     //"Créer un compte",
-        connect_server,     //"Se connecter",
-        send_gazou,         //"Envoyer un gazouilli         ",
-        get_gazou,          //"Gazouillis reçus             ",
-        relay_gazou,        //"Relayer un gazouilli         ",
-        follow_user,        //"Suivre un utilisateur        ",
-        unfollow_user,      //"Ne plus suivre un utilisateur",
-        list_followed_users,//"Utilisateurs suivis          ",
-        list_my_followers,  //"Mes Abonnés                  ",
-        follow_tag,         //"Suivre une thématique        ",
-        unfollow_tag,       //"Ne plus suivre une thématique",
-        list_followed_tags, //"Thématique suivies           ",
-        disconnect          //"Déconnexion                  "
+        quit,               // Quitter
+        create_account,     // Créer un compte
+        connect_server,     // Se connecter
+        send_gazou,         // Envoyer un gazouilli
+        get_gazou,          // Gazouillis reçus
+        relay_gazou,        // Relayer un gazouilli
+        follow_user,        // Suivre un utilisateur
+        unfollow_user,      // Ne plus suivre un utilisateur
+        list_followed_users,// Utilisateurs suivis
+        list_my_followers,  // Mes Abonnés
+        follow_tag,         // Suivre un tag
+        unfollow_tag,       // Ne plus suivre un tag
+        list_followed_tags, // Tags suivis
+        disconnect          // Déconnexion
 };
 const unsigned int functions_count = sizeof(functions) / sizeof(request_function);
 
@@ -437,11 +437,15 @@ int list_followed_users(){
             json_object* followed_users_json = json_object_object_get(result_params, "list_of_users");
             array_list* list_of_followed_users = json_object_get_array(followed_users_json);
 
-            print_message_below(SUCCESS, "Liste des utilisateurs suivis :\n");
-            for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
-                json_object* item = array_list_get_idx(list_of_followed_users, i);
-                const char* followed = json_object_get_string(item);
-                printf("%s\n", followed);
+            if(array_list_length(list_of_followed_users) == 0) {
+                print_message_below(SUCCESS, "Aucun utilisateur suivi.\n");
+            } else {
+                print_message_below(SUCCESS, "Liste des utilisateurs suivis :\n");
+                for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
+                    json_object* item = array_list_get_idx(list_of_followed_users, i);
+                    const char* followed = json_object_get_string(item);
+                    printf("%s\n", followed);
+                }
             }
 
             break;}
@@ -481,11 +485,15 @@ int list_followed_tags(){
             json_object* followed_tags_json = json_object_object_get(result_params, "list_of_tags");
             array_list* list_of_followed_tags = json_object_get_array(followed_tags_json);
 
-            print_message_below(SUCCESS, "Liste des tags suivis :\n");
-            for (size_t i = 0; i < array_list_length(list_of_followed_tags); i++) {
-                json_object* item = array_list_get_idx(list_of_followed_tags, i);
-                const char* followed = json_object_get_string(item);
-                printf("%s\n", followed);
+            if(array_list_length(list_of_followed_tags) == 0) {
+                print_message_below(SUCCESS, "Aucun tag suivi.\n");
+            } else {
+                print_message_below(SUCCESS, "Liste des tags suivis :\n");
+                for (size_t i = 0; i < array_list_length(list_of_followed_tags); i++) {
+                    json_object* item = array_list_get_idx(list_of_followed_tags, i);
+                    const char* followed = json_object_get_string(item);
+                    printf("%s\n", followed);
+                }
             }
             break;}
 
@@ -524,11 +532,15 @@ int list_my_followers(){
             json_object* followers_users_json = json_object_object_get(result_params, "list_of_followers");
             array_list* list_of_followers_users = json_object_get_array(followers_users_json);
 
-            print_message_below(SUCCESS, "Liste de mes abonnés :\n");
-            for (size_t i = 0; i < array_list_length(list_of_followers_users); i++) {
-                json_object* item = array_list_get_idx(list_of_followers_users, i);
-                const char* followed = json_object_get_string(item);
-                printf("%s\n", followed);
+            if(array_list_length(list_of_followers_users) == 0) {
+                print_message_below(SUCCESS, "Aucun abonné.\n");
+            } else {
+                print_message_below(SUCCESS, "Liste de mes abonnés :\n");
+                for (size_t i = 0; i < array_list_length(list_of_followers_users); i++) {
+                    json_object* item = array_list_get_idx(list_of_followers_users, i);
+                    const char* followed = json_object_get_string(item);
+                    printf("%s\n", followed);
+                }
             }
             break;}
 
@@ -568,10 +580,14 @@ int get_gazou(){
             json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
             array_list* list_of_gazous = json_object_get_array(gazous_json);
 
-            print_message_below(SUCCESS, "Liste des gazouillis reçus :\n");
-            for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
-                json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
-                print_gazou(gazou_json);
+            if(array_list_length(list_of_gazous) == 0) {
+                print_message_below(SUCCESS, "Aucun gazouilli reçu.\n");
+            } else {
+                print_message_below(SUCCESS, "Liste des gazouillis reçus :\n");
+                for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
+                    json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
+                    print_gazou(gazou_json);
+                }
             }
             break;}
 
@@ -627,10 +643,14 @@ int relay_gazou(){
             json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
             array_list* list_of_gazous = json_object_get_array(gazous_json);
 
-            print_message_below(SUCCESS, "Liste des gazouillis relayables :\n");
-            for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
-                json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
-                print_gazou(gazou_json);
+            if(array_list_length(list_of_gazous) == 0) {
+                print_message_below(SUCCESS, "Aucun gazouilli relayable.\n");
+            } else {
+                print_message_below(SUCCESS, "Liste des gazouillis relayables :\n");
+                for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
+                    json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
+                    print_gazou(gazou_json);
+                }
             }
 
             // Création de la requête
