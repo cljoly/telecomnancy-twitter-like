@@ -820,13 +820,18 @@ json_object *get_gazou(json_object *req, sqlite3 *db) {
   sprintf(stmt,
       "SELECT DISTINCT id, date, content, author, retweeter FROM gazou "\
       "LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id "\
-      "LEFT JOIN relay ON gazou.id = relay.gazou_id "\
+      "INNER JOIN relay ON gazou.id = relay.gazou_id "\
       "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
       "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%s') "\
       "OR retweeter IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
+      "UNION "\
+      "SELECT DISTINCT id, date, content, author, NULL FROM gazou "\
+      "LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id "\
+      "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
+      "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%s') "\
       "ORDER BY date DESC "\
       "LIMIT %i;",
-      user, user, user, max_nb_gazou);
+      user, user, user, user, user, max_nb_gazou);
   json_object *gazou_ids = json_object_new_array();
   int edr = exec_db(db, stmt, &fill_objects_array_callback, gazou_ids);
   if (edr != 0) {
