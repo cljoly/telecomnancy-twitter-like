@@ -106,9 +106,9 @@ int fill_objects_array_callback(void *jarray, int argc, char **argv, char **colN
 
 int new_random_cookie(sqlite3 *db, const char *user) {
   char stmt[BUFSIZE];
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "UPDATE user SET cookie=ABS(RANDOM() %% %i) "\
-      "WHERE name='%s';",
+      "WHERE name='%Q';",
       INT_MAX-1, user);
   return exec_db(db, stmt, NULL, NULL);
 }
@@ -122,7 +122,7 @@ int new_random_cookie(sqlite3 *db, const char *user) {
 int user_name_from_cookie(sqlite3 *db, int cookie, char *username) {
   char retrieved_username[USERNAME_MAXSIZE] = { '\0' };
   char stmt[BUFSIZE];
-  sprintf(stmt, "SELECT name FROM user WHERE cookie='%i' LIMIT 1;",
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT name FROM user WHERE cookie='%i' LIMIT 1;",
       cookie);
   int edr = exec_db(db, stmt, &username_callback, &retrieved_username);
   if (edr != 0) {
@@ -147,8 +147,8 @@ int new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
     json_object *item = array_list_get_idx(list_of_tags, i);
     const char *tag_name = json_object_get_string(item);
     printf("list_of_tags[%i]: %s\n", i, tag_name);
-    sprintf(stmt,
-      "INSERT OR IGNORE INTO tag(name) VALUES('%s');",
+    sqlite3_snprintf(BUFSIZE, stmt,
+      "INSERT OR IGNORE INTO tag(name) VALUES('%Q');",
       tag_name);
     int edr = exec_db(db, stmt, NULL, NULL);
     if (edr != 0) {
@@ -157,8 +157,8 @@ int new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
   }
 
   // Ajouter le gazouilli
-  sprintf(stmt,
-      "INSERT INTO gazou(content, date, author) VALUES('%s', '%s', '%s');",
+  sqlite3_snprintf(BUFSIZE, stmt,
+      "INSERT INTO gazou(content, date, author) VALUES('%Q', '%Q', '%Q');",
       gazou_content, date, author);
   int edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
@@ -170,8 +170,8 @@ int new_gazou(sqlite3 *db, const char *gazou_content, const char *author,
   for (int i = 0; i < (int)array_list_length(list_of_tags); i++) {
     json_object *item = array_list_get_idx(list_of_tags, i);
     const char *tag_name = json_object_get_string(item);
-    sprintf(stmt,
-      "INSERT OR IGNORE INTO gazou_tag(gazou_id, tag) VALUES(%i, '%s');",
+    sqlite3_snprintf(BUFSIZE, stmt,
+      "INSERT OR IGNORE INTO gazou_tag(gazou_id, tag) VALUES(%i, '%Q');",
       gazou_id, tag_name);
     int edr = exec_db(db, stmt, NULL, NULL);
     if (edr != 0) {
@@ -192,7 +192,7 @@ int fill_tags_in_gazou_array(sqlite3 *db, json_object *array_ids) {
         i, json_object_to_json_string(gazou_obj));
 
     // Récupérations des thématiques associées
-    sprintf(stmt, "SELECT tag FROM gazou_tag WHERE gazou_id='%i';", id);
+    sqlite3_snprintf(BUFSIZE, stmt, "SELECT tag FROM gazou_tag WHERE gazou_id='%i';", id);
     json_object *gazou_obj_tags = json_object_new_array();
     int edr = exec_db(db, stmt, &fill_tags_array_callback, gazou_obj_tags);
     if (edr != 0) {
@@ -219,7 +219,7 @@ json_object *create_account(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que le nom d’utilisateur soit libre
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", user);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT * FROM user WHERE name='%Q';", user);
   int nb_user = 0;
   int edr = exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (edr != 0) {
@@ -233,9 +233,9 @@ json_object *create_account(json_object *req, sqlite3 *db) {
   /* Pas de vérification de l’unicité du cookie même si la base de donnée le
      vérifie : la proba de collision est faible à cause de la
      taille du nombre aléatoire fournit (jusqu’à une dizaine de clients). */
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "INSERT INTO user (name, password, cookie) "\
-      "VALUES ('%s', '%s', ABS(RANDOM() %% %i));",
+      "VALUES ('%Q', '%Q', ABS(RANDOM() %% %i));",
       user, pass, INT_MAX-1);
   edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
@@ -272,7 +272,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
   }
 
   // Vérifions que le mot de passe soit correct
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s' AND password='%s';", user, pass);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT * FROM user WHERE name='%Q' AND password='%Q';", user, pass);
   int nb_pass = 0;
   edr = exec_db(db, stmt, &number_of_row_callback, &nb_pass);
   if (edr != 0) {
@@ -291,7 +291,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
 
   // Récupérons le cookie
   int cookie = -1;
-  sprintf(stmt, "SELECT cookie FROM user WHERE name='%s';", user);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT cookie FROM user WHERE name='%Q';", user);
   edr = exec_db(db, stmt, &cookie_callback, &cookie);
   if (edr != 0) {
     return create_answer(req, SPEC_ERR_INTERNAL_SRV);
@@ -405,7 +405,7 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que le nom d’utilisateur à suivre existe
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", username_to_follow);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT * FROM user WHERE name='%Q';", username_to_follow);
   int nb_user = 0;
   int edr = exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (edr != 0) {
@@ -417,9 +417,9 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
   }
 
   // Vérifions qu’on ne soit pas déjà abonné
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "SELECT * FROM user_subscription "\
-      "WHERE followed='%s' AND follower='%s';",
+      "WHERE followed='%Q' AND follower='%Q';",
       username_to_follow, user);
   int nb = 0;
   edr = exec_db(db, stmt, &number_of_row_callback, &nb);
@@ -432,9 +432,9 @@ json_object *follow_user(json_object *req, sqlite3 *db) {
   }
 
   // Insérons l’information de suivie
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "INSERT INTO user_subscription(followed, follower) "\
-      "VALUES ('%s', '%s');",
+      "VALUES ('%Q', '%Q');",
       username_to_follow, user);
   edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
@@ -468,9 +468,9 @@ json_object *follow_tag(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions qu’on ne soit pas déjà abonné au tag
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "SELECT * FROM tag_subscription "\
-      " WHERE tag='%s' AND follower='%s';",
+      " WHERE tag='%Q' AND follower='%Q';",
       tag_to_follow, user);
   int nb = 0;
   int edr = exec_db(db, stmt, &number_of_row_callback, &nb);
@@ -484,9 +484,9 @@ json_object *follow_tag(json_object *req, sqlite3 *db) {
   }
 
   // Insérons l’information de suivie
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "INSERT INTO tag_subscription(tag, follower) "\
-      "VALUES ('%s', '%s');",
+      "VALUES ('%Q', '%Q');",
       tag_to_follow, user);
   edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
@@ -520,7 +520,7 @@ json_object *unfollow_user(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que le nom d’utilisateur à cesser de suivre existe
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", username_to_unfollow);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT * FROM user WHERE name='%Q';", username_to_unfollow);
   int nb_user = 0;
   int edr = exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (edr != 0) {
@@ -532,9 +532,9 @@ json_object *unfollow_user(json_object *req, sqlite3 *db) {
   }
 
   // Vérifions qu’on soit bien déjà abonné
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "SELECT * FROM user_subscription "\
-      " WHERE followed='%s' AND follower='%s';",
+      " WHERE followed='%Q' AND follower='%Q';",
       username_to_unfollow, user);
   int nb = 0;
   edr = exec_db(db, stmt, &number_of_row_callback, &nb);
@@ -547,8 +547,8 @@ json_object *unfollow_user(json_object *req, sqlite3 *db) {
   }
 
   // Supprimons l’information de suivie
-  sprintf(stmt,
-      "DELETE FROM user_subscription WHERE followed='%s' AND follower='%s';",
+  sqlite3_snprintf(BUFSIZE, stmt,
+      "DELETE FROM user_subscription WHERE followed='%Q' AND follower='%Q';",
       username_to_unfollow, user);
   edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
@@ -582,9 +582,9 @@ json_object *unfollow_tag(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions qu’on soit bien déjà abonné au tag
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "SELECT * FROM tag_subscription "\
-      " WHERE tag='%s' AND follower='%s';",
+      " WHERE tag='%Q' AND follower='%Q';",
       tag_to_unfollow, user);
   int nb = 0;
   int edr = exec_db(db, stmt, &number_of_row_callback, &nb);
@@ -597,9 +597,9 @@ json_object *unfollow_tag(json_object *req, sqlite3 *db) {
   }
 
   // Supprimons l’information de suivie
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "DELETE FROM tag_subscription "\
-      "WHERE tag='%s' AND follower='%s';",
+      "WHERE tag='%Q' AND follower='%Q';",
       tag_to_unfollow, user);
   edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
@@ -630,7 +630,7 @@ json_object *list_followed_users(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Récupérations des noms des utilisateurs suivis
-  sprintf(stmt, "SELECT followed FROM user_subscription WHERE follower='%s';", user);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT followed FROM user_subscription WHERE follower='%Q';", user);
   json_object *followed_users = json_object_new_array();
   int edr = exec_db(db, stmt, &fill_users_array_callback, followed_users);
   if (edr != 0) {
@@ -670,7 +670,7 @@ json_object *list_followed_tags(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Récupérations des thématiques suivies
-  sprintf(stmt, "SELECT tag FROM tag_subscription WHERE follower='%s';", user);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT tag FROM tag_subscription WHERE follower='%Q';", user);
   json_object *followed_tags = json_object_new_array();
   int edr = exec_db(db, stmt, &fill_tags_array_callback, followed_tags);
   if (edr != 0) {
@@ -710,7 +710,7 @@ json_object *list_my_followers(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Récupérations des abonnés
-  sprintf(stmt, "SELECT follower FROM user_subscription WHERE followed='%s';", user);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT follower FROM user_subscription WHERE followed='%Q';", user);
   json_object *followed_users = json_object_new_array();
   int edr = exec_db(db, stmt, &fill_users_array_callback, followed_users);
   if (edr != 0) {
@@ -752,7 +752,7 @@ json_object *relay_gazou(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que l’id soit valide
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "SELECT * FROM gazou "\
       " WHERE id='%i';",
       id);
@@ -767,9 +767,9 @@ json_object *relay_gazou(json_object *req, sqlite3 *db) {
   }
 
   // Vérifions qu’on n’ai pas déjà relayé le gazouilli
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "SELECT * FROM relay "\
-      " WHERE gazou_id='%i' AND retweeter='%s';",
+      " WHERE gazou_id='%i' AND retweeter='%Q';",
       id, user);
   nb = 0;
   edr = exec_db(db, stmt, &number_of_row_callback, &nb);
@@ -782,9 +782,9 @@ json_object *relay_gazou(json_object *req, sqlite3 *db) {
   }
 
   // Insérons l’information de relayage
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "INSERT INTO relay(gazou_id, retweeter) "\
-      "VALUES ('%i', '%s');",
+      "VALUES ('%i', '%Q');",
       id, user);
   edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
@@ -817,18 +817,18 @@ json_object *get_gazou(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Récupérations des ids des gazouillis
-  sprintf(stmt,
+  sqlite3_snprintf(BUFSIZE, stmt,
       "SELECT DISTINCT id, date, content, author, retweeter FROM gazou "\
       "LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id "\
       "INNER JOIN relay ON gazou.id = relay.gazou_id "\
-      "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
-      "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%s') "\
-      "OR retweeter IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
+      "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%Q') "\
+      "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%Q') "\
+      "OR retweeter IN (SELECT followed FROM user_subscription WHERE follower = '%Q') "\
       "UNION "\
       "SELECT DISTINCT id, date, content, author, NULL FROM gazou "\
       "LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id "\
-      "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%s') "\
-      "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%s') "\
+      "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = '%Q') "\
+      "OR tag IN (SELECT tag FROM tag_subscription WHERE follower = '%Q') "\
       "ORDER BY date DESC "\
       "LIMIT %i;",
       user, user, user, user, user, max_nb_gazou);
