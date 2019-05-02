@@ -260,7 +260,7 @@ json_object *connect(json_object *req, sqlite3 *db) {
 
   char stmt[BUFSIZE];
   // Vérifions que le nom d’utilisateur existe
-  sprintf(stmt, "SELECT * FROM user WHERE name='%s';", user);
+  sqlite3_snprintf(BUFSIZE, stmt, "SELECT * FROM user WHERE name=%Q;", user);
   int nb_user = 0;
   int edr = exec_db(db, stmt, &number_of_row_callback, &nb_user);
   if (edr != 0) {
