@@ -252,7 +252,7 @@ Paramètres :
 | Nom | Type | Description |
 |----:|:---:|:---|
 | `id_gazouilli` | entier | Identifiant unique du gazouilli |
-| `date` | string | Date du relayage, au même format que pour un objet Gazouilli |
+| `retweet_date` | string | Date du relayage, au même format que pour un objet Gazouilli |
 | `cookie` | int | Authentifie l’utilisateur |
 
 
