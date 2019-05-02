@@ -1,5 +1,5 @@
 #include <errno.h>
-#include <json.h>
+#include <json-c/json.h>
 #include <limits.h>
 #include <netdb.h>
 #include <signal.h>

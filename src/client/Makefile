@@ -12,8 +12,8 @@ SRCEXT      := c
 OBJEXT      := o
 
 #Flags and Libraries
-CFLAGS      := -Wall -Werror -Wextra -Wformat -g -I../../lib/json-c
-LIB         := -L../../lib/json-c/build -ljson-c
+CFLAGS      := -Wall -Werror -Wextra -Wformat -g -I../../lib/json-c/include
+LIB         := ../../lib/json-c/lib/libjson-c.so
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE

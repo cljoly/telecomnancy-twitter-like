@@ -2,7 +2,7 @@
 #include "terminal.h"
 #include "client.h"
 #include "tools.h"
-#include <json.h>
+#include <json-c/json.h>
 #include <limits.h>
 #include <stdio.h>
 #include <sys/socket.h>
