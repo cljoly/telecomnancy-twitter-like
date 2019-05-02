@@ -33,6 +33,8 @@ static const unsigned int commands_count = sizeof(commands) / sizeof(char*);
 static int above_count = 0;
 static int below_count = 0;
 
+extern char* username;
+
 void clear_above_below_positions() {
     if( above_count != 2) {
         above_count = 0;
@@ -177,10 +179,15 @@ unsigned int prompt_user(int cookie) {
     }
     print_menu(first_command_index, last_command_index);
     // prompt
-    //printf("\e[13;39H\e[2J");
-    printf("\033[14;1H");
+    if(cookie != -1) {
+        printf("\033[14;1H");
+        printf("\033[0;34m");
+        printf("Bonjour %s !", username);
+        printf("\033[0m");
+    }
+    printf("\033[15;1H");
     printf("\n");
-    printf("\033[14;1H");
+    printf("\033[15;1H");
     printf("> Quelle action voulez-vous effectuer ? ");
 
     // Lecture des données

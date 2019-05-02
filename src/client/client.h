@@ -11,7 +11,6 @@ typedef struct json_object json_object;
 struct addrinfo;
 
 // Fonctions de communication réseau
-struct hostent;
 const struct addrinfo* init_connection(const struct addrinfo* server_info);
 int send_message(const char* message);
 json_object* get_response_object();

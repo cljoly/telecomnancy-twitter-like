@@ -16,6 +16,7 @@
 #include "methods.h"
 
 
+char* username = NULL;
 int cookie = -1;
 int sockfd;
 
@@ -233,7 +234,5 @@ void usage() {
 }
 
 void force_quit(){
-    printf("\nFermeture propre de la connexion\n");
-    close(sockfd);
-    exit(0);
+    quit();
 }

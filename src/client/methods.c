@@ -13,6 +13,7 @@
 
 extern int cookie;
 extern int sockfd;
+extern char* username;
 
 request_function functions[] = {
         quit,               //"Quitter",
@@ -103,8 +104,6 @@ int connect_server() {
     if (send_message(json_object_to_json_string(request)) != 0) {
         return 1;
     }
-    // free de la requête
-    json_object_put(request);
 
 
     // Lecture et gestion de la réponse
@@ -114,6 +113,13 @@ int connect_server() {
         case 0:
             cookie = json_object_get_int(json_object_object_get(result_params, "cookie"));
             print_message_above(SUCCESS, "Connexion réussie !\n");
+
+            // Récupération du nom de l'utilisateur
+            const json_object* params_json = json_object_object_get(request, "params");
+            const char* username_params = json_object_to_json_string(json_object_object_get(params_json, "username"));
+            username = calloc(strlen(username_params)+1, sizeof(char));
+            strcpy(username, username_params);
+
             break;
 
         case 1:
@@ -131,7 +137,8 @@ int connect_server() {
             break;
     }
 
-    // free du résultat
+    // free du résultat et de la requête
+    json_object_put(request);
     json_object_put(result_params);
     return error_code;
 
@@ -704,6 +711,8 @@ int relay_gazou(){
 int disconnect() {
     cookie = -1;
     print_title();
+    free(username);
+    username = NULL;
     return 0;
 }
 
@@ -712,6 +721,8 @@ int disconnect() {
  * @return
  */
 int quit(){
+    printf("Fermeture du programme et de la connexion.\n");
+    free(username);
     close(sockfd);
     exit(0);
 }
