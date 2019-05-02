@@ -3,6 +3,7 @@
 #include "client.h"
 #include "tools.h"
 #include <json.h>
+#include <limits.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -18,14 +19,15 @@ request_function functions[] = {
         create_account,     //"Créer un compte",
         connect_server,     //"Se connecter",
         send_gazou,         //"Envoyer un gazouilli         ",
-        not_implemented,    //"Relayer un gazouilli         ",
+        get_gazou,          //"Gazouillis reçus             ",
+        relay_gazou,        //"Relayer un gazouilli         ",
         follow_user,        //"Suivre un utilisateur        ",
         unfollow_user,      //"Ne plus suivre un utilisateur",
-        not_implemented,    //"Utilisateurs suivis          ",
-        not_implemented,    //"Mes Abonnés                  ",
+        list_followed_users,//"Utilisateurs suivis          ",
+        list_my_followers,  //"Mes Abonnés                  ",
         follow_tag,         //"Suivre une thématique        ",
         unfollow_tag,       //"Ne plus suivre une thématique",
-        not_implemented,    //"Thématique suivies           ",
+        list_followed_tags, //"Thématique suivies           ",
         disconnect          //"Déconnexion                  "
 };
 const unsigned int functions_count = sizeof(functions) / sizeof(request_function);
@@ -36,7 +38,7 @@ const unsigned int functions_count = sizeof(functions) / sizeof(request_function
  * @return 1
  */
 int not_implemented() {
-    print_message(FATAL_ERROR, "Commande non implémentée");
+    print_message_above(FATAL_ERROR, "Commande non implémentée");
     return 1;
 }
 
@@ -50,7 +52,9 @@ int create_account() {
             NULL
     };
     printf("Création d'un compte\n\n");
-    fill_request(request, params);
+    if( fill_request(request, params) != 0) {
+        return 1;
+    }
     if (send_message(json_object_to_json_string(request)) != 0) {
         return 1;
     }
@@ -63,16 +67,16 @@ int create_account() {
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Compte créé !\n");
+            print_message_above(SUCCESS, "Compte créé !\n");
             break;
 
         case 1: //erreur de notre doc : elle est gérée, on met l'error_code à 0 et on continue
-            print_message(ERROR, "Ce nom d'utilisateur existe déjà.\n");
+            print_message_above(ERROR, "Ce nom d'utilisateur existe déjà.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -109,21 +113,21 @@ int connect_server() {
     switch (error_code) {
         case 0:
             cookie = json_object_get_int(json_object_object_get(result_params, "cookie"));
-            print_message(SUCCESS, "Connexion réussie !\n");
+            print_message_above(SUCCESS, "Connexion réussie !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Ce nom d'utilisateur n'existe pas.\n");
+            print_message_above(ERROR, "Ce nom d'utilisateur n'existe pas.\n");
             error_code = 0;
             break;
 
         case 2:
-            print_message(ERROR, "Mot de passe incorrect.\n");
+            print_message_above(ERROR, "Mot de passe incorrect.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -146,13 +150,13 @@ int send_gazou(){
 
     //Si le message tapé est vide
     if (prompt_user_for_parameter("Gazouilli", buf) != 0) {
-        print_message(ERROR, "Veuillez entrer un message non vide\n");
+        print_message_above(ERROR, "Veuillez entrer un message non vide\n");
         return 1;
     }
 
     //Si le message tapé fait plus de 140 caractères
     if (strlen(buf) > 140){
-        print_message(ERROR, "Veuillez entrer un message de moins de 140 caractères\n");
+        print_message_above(ERROR, "Veuillez entrer un message de moins de 140 caractères\n");
         return 2;
     }
 
@@ -175,7 +179,7 @@ int send_gazou(){
             }
             if (*end_cursor == ' '){
                 *end_cursor = '\0';
-                json_object_array_add(list_of_tags, json_object_new_string(start_cursor));
+                json_object_array_add(list_of_tags, json_object_new_string(start_cursor+1));
                 *end_cursor = ' ';
                 start_cursor = end_cursor;
             } else {
@@ -209,21 +213,21 @@ int send_gazou(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Message envoyé !\n");
+            print_message_above(SUCCESS, "Message envoyé !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Message comportant un/des caractère(s) non supporté(s).\n");
+            print_message_above(ERROR, "Message comportant un/des caractère(s) non supporté(s).\n");
             error_code = 0;
             break;
 
         case 2:
-            print_message(ERROR, "Message trop long.\n");
+            print_message_above(ERROR, "Message trop long.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -254,21 +258,21 @@ int follow_user(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Utilisateur suivi !\n");
+            print_message_above(SUCCESS, "Utilisateur suivi !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Le nom d'utilisateur que vous voulez suivre n'existe pas.\n");
+            print_message_above(ERROR, "Le nom d'utilisateur que vous voulez suivre n'existe pas.\n");
             error_code = 0;
             break;
 
         case 2:
-            print_message(ERROR, "Vous êtes déjà abonné à cet utilisateur.\n");
+            print_message_above(ERROR, "Vous êtes déjà abonné à cet utilisateur.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -300,16 +304,16 @@ int unfollow_user(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Vous ne suivez plus l'utilisateur !\n");
+            print_message_above(SUCCESS, "Vous ne suivez plus l'utilisateur !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Vous n'êtes pas abonné à cet utilisateur.\n");
+            print_message_above(ERROR, "Vous n'êtes pas abonné à cet utilisateur.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -341,16 +345,16 @@ int follow_tag(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Tag suivi !\n");
+            print_message_above(SUCCESS, "Tag suivi !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Vous êtes déjà abonné à ce tag.\n");
+            print_message_above(ERROR, "Vous êtes déjà abonné à ce tag.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -382,16 +386,16 @@ int unfollow_tag(){
     int error_code = get_response_result(request_id, &result_params);
     switch (error_code) {
         case 0:
-            print_message(SUCCESS, "Vous ne suivez plus ce tag !\n");
+            print_message_above(SUCCESS, "Vous ne suivez plus ce tag !\n");
             break;
 
         case 1:
-            print_message(ERROR, "Vous n'êtes pas abonné à ce tag.\n");
+            print_message_above(ERROR, "Vous n'êtes pas abonné à ce tag.\n");
             error_code = 0;
             break;
 
         default:
-            print_message(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
             break;
     }
 
@@ -401,6 +405,297 @@ int unfollow_tag(){
 
 }
 
+int list_followed_users(){
+    // Création de la requête
+    json_object* request = create_request("list_followed_users");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:{
+            json_object* followed_users_json = json_object_object_get(result_params, "list_of_users");
+            array_list* list_of_followed_users = json_object_get_array(followed_users_json);
+
+            print_message_below(SUCCESS, "Liste des utilisateurs suivis :\n");
+            for (size_t i = 0; i < array_list_length(list_of_followed_users); i++) {
+                json_object* item = array_list_get_idx(list_of_followed_users, i);
+                const char* followed = json_object_get_string(item);
+                printf("%s\n", followed);
+            }
+
+            break;}
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+}
+
+int list_followed_tags(){
+    // Création de la requête
+    json_object* request = create_request("list_followed_tags");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:{
+            json_object* followed_tags_json = json_object_object_get(result_params, "list_of_tags");
+            array_list* list_of_followed_tags = json_object_get_array(followed_tags_json);
+
+            print_message_below(SUCCESS, "Liste des tags suivis :\n");
+            for (size_t i = 0; i < array_list_length(list_of_followed_tags); i++) {
+                json_object* item = array_list_get_idx(list_of_followed_tags, i);
+                const char* followed = json_object_get_string(item);
+                printf("%s\n", followed);
+            }
+            break;}
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+}
+
+int list_my_followers(){
+    // Création de la requête
+    json_object* request = create_request("list_my_followers");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:{
+            json_object* followers_users_json = json_object_object_get(result_params, "list_of_followers");
+            array_list* list_of_followers_users = json_object_get_array(followers_users_json);
+
+            print_message_below(SUCCESS, "Liste de mes abonnés :\n");
+            for (size_t i = 0; i < array_list_length(list_of_followers_users); i++) {
+                json_object* item = array_list_get_idx(list_of_followers_users, i);
+                const char* followed = json_object_get_string(item);
+                printf("%s\n", followed);
+            }
+            break;}
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+}
+
+int get_gazou(){
+    // Création de la requête
+    json_object* request = create_request("get_gazou");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "nb_gazou", json_object_new_int(NUMBER_OF_GAZOU));
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0:{
+            json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
+            array_list* list_of_gazous = json_object_get_array(gazous_json);
+
+            print_message_below(SUCCESS, "Liste des gazouillis reçus :\n");
+            for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
+                json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
+                print_gazou(gazou_json);
+            }
+            break;}
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+}
+
+void print_gazou(json_object* gazou_json){
+    int id = json_object_get_int(json_object_object_get(gazou_json, "id"));
+    const char* author = json_object_get_string(json_object_object_get(gazou_json, "author"));
+    printf("%d - %s", id, author);
+    const char* relay_author = json_object_get_string(json_object_object_get(gazou_json, "retweeter"));
+    if (relay_author[0] != '\0'){
+        printf("- relayé par %s", relay_author);
+    }
+    printf("\n");
+    const char* content = json_object_get_string(json_object_object_get(gazou_json, "content"));
+    printf("%s\n", content);
+    const char* date = json_object_get_string(json_object_object_get(gazou_json, "date"));
+    printf("%s\n", date);
+    printf("\n");
+}
+
+int relay_gazou(){
+    // Création de la requête
+    json_object* request = create_request("get_gazou");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "nb_gazou", json_object_new_int(NUMBER_OF_GAZOU));
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    switch (error_code) {
+        case 0: {
+            json_object* gazous_json = json_object_object_get(result_params, "list_of_gazous");
+            array_list* list_of_gazous = json_object_get_array(gazous_json);
+
+            print_message_below(SUCCESS, "Liste des gazouillis relayables :\n");
+            for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
+                json_object* gazou_json = array_list_get_idx(list_of_gazous, i);
+                print_gazou(gazou_json);
+            }
+
+            // Création de la requête
+            json_object* request2 = create_request("relay_gazou");
+            const unsigned int request2_id = (unsigned int) json_object_get_int(json_object_object_get(request2, "id"));
+
+
+
+            printf("\033[1;1H");
+            printf("Relayer un gazouilli\n\n");
+            clear_above_below_positions();
+
+            char buf[MAXDATASIZE];
+            json_object* params = json_object_new_object();
+            memset(buf, 0, MAXDATASIZE);
+            if (prompt_user_for_parameter("ID du gazouilli à relayer", buf) != 0) {
+                return 1;
+            }
+            if (json_object_object_add(params, "id_gazouilli", json_object_new_int(atoi(buf))) != 0) {
+                return 2;
+            }
+            if (cookie != -1){
+                json_object_object_add(params, "cookie", json_object_new_int(cookie));
+            }
+            if (json_object_object_add(request2, "params", params) != 0) {
+                return 3;
+            }
+
+            if (send_message(json_object_to_json_string(request2)) != 0) {
+                return 1;
+            }
+            // free de la requête
+            json_object_put(request2);
+
+            // Lecture et gestion de la réponse
+            json_object* result2_params = NULL;
+            int error2_code = get_response_result(request2_id, &result2_params);
+            switch (error2_code) {
+                case 0:
+                    print_message_above(SUCCESS, "Gazouilli relayé !\n");
+                    break;
+
+                case 1:
+                    print_message_above(ERROR, "Id du gazouilli invalide\n");
+                    error_code = 0;
+                    break;
+
+                case 2:
+                    print_message_above(ERROR, "Gazouilli déjà relayé\n");
+                    error_code = 0;
+                    break;
+
+                default:
+                    print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+                    break;
+            }
+
+            // free du résultat
+            json_object_put(result_params);
+            break;
+
+        }
+
+        default:
+            print_message_above(FATAL_ERROR, "Code d'erreur inconnu: %d\n.", error_code);
+            break;
+    }
+    clear_terminal_except_header();
+    return error_code;
+}
+
+
 /**
  * Ferme la socket et quitte le programme.
  * TODO: déconnexion propre
@@ -408,6 +703,7 @@ int unfollow_tag(){
  */
 int disconnect() {
     cookie = -1;
+    print_title();
     return 0;
 }
 
@@ -446,6 +742,7 @@ int fill_request(json_object* request, const char** params_name) {
     for (int i = 0; params_name[i] != NULL; i++) {
         memset(buf, 0, MAXDATASIZE);
         if (prompt_user_for_parameter(params_name[i], buf) != 0) {
+            print_message_above(ERROR, "Veuillez entrer une valeur pour tous les champs.");
             return 1;
         }
         if (json_object_object_add(params, params_name[i], json_object_new_string(buf)) != 0) {
