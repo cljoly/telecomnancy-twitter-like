@@ -786,7 +786,10 @@ json_object *relay_gazou(json_object *req, sqlite3 *db) {
       "INSERT INTO relay(gazou_id, retweeter) "\
       "VALUES ('%i', '%s');",
       id, user);
-  exec_db(db, stmt, NULL, NULL);
+  edr = exec_db(db, stmt, NULL, NULL);
+  if (edr != 0) {
+    return create_answer(req, SPEC_ERR_INTERNAL_SRV);
+  }
   memset(stmt, '\0', BUFSIZE);
 
   // Réponse
