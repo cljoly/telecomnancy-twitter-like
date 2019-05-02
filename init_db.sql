@@ -63,3 +63,6 @@ CREATE TABLE "relay" (
     ON CONFLICT ABORT
 );
 
+-- Index pour accélérer les requêtes de récupération des gazou suivis
+CREATE INDEX user_follower ON user_subscription(follower);
+CREATE INDEX tag_follower ON tag_subscription(follower);

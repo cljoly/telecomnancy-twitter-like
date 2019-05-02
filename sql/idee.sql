@@ -45,3 +45,24 @@ OR tag IN (SELECT tag FROM tag_subscription WHERE follower = 'me')
 OR retweeter IN (SELECT followed FROM user_subscription WHERE follower = 'me')
 ORDER BY date
 LIMIT 20;
+
+
+-- Version avec les tweet à NULL
+SELECT * 
+FROM gazou 
+LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id 
+INNER JOIN relay ON gazou.id = relay.gazou_id 
+WHERE
+	author IN (SELECT followed FROM user_subscription WHERE follower = 'tutu')
+	OR tag IN (SELECT tag FROM tag_subscription WHERE follower = 'tutu')
+	OR retweeter IN (SELECT followed FROM user_subscription WHERE follower = 'tutu')
+UNION
+SELECT *, NULL, NULL 
+FROM gazou 
+LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id
+WHERE
+	author IN (SELECT followed FROM user_subscription WHERE follower = 'tutu')
+	OR tag IN (SELECT tag FROM tag_subscription WHERE follower = 'tutu')
+ORDER BY date DESC
+LIMIT 20
+;
