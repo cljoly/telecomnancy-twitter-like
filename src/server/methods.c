@@ -83,10 +83,10 @@ int fill_objects_array_callback(void *jarray, int argc, char **argv, char **colN
     printf("========== fill_objects_array_callback exécuté dans de mauvaises conditions\n");
 
   json_object *retweeter;
-  if (argv[5] == NULL) {
+  if (argv[4] == NULL) {
     retweeter = json_object_new_string("");
   } else {
-    retweeter = json_object_new_string(argv[5]);
+    retweeter = json_object_new_string(argv[4]);
   }
 
   json_object *gazou_obj = json_object_new_object();
