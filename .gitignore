@@ -207,8 +207,6 @@ tags
 # Persistent undo
 [._]*.un~
 
-CMakeLists.txt
-
 # Binaires compilés
 src/client/client
 src/server/server
