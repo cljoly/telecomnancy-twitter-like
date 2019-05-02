@@ -613,16 +613,30 @@ int get_gazou(){
 void print_gazou(json_object* gazou_json){
     int id = json_object_get_int(json_object_object_get(gazou_json, "id"));
     const char* author = json_object_get_string(json_object_object_get(gazou_json, "author"));
-    printf("%d - %s", id, author);
-    const char* relay_author = json_object_get_string(json_object_object_get(gazou_json, "retweeter"));
-    if (relay_author[0] != '\0'){
-        printf("- relayé par %s", relay_author);
+    printf("\033[2m%d - de %s\033[0m", id, author);
+
+    json_object* retweeter_json;
+    if (json_object_object_get_ex(gazou_json, "retweeter", &retweeter_json)) {
+        const char* relay_author = json_object_get_string(retweeter_json);
+        if (relay_author[0] != '\0') {
+            printf(", relayé par %s", relay_author);
+        }
     }
     printf("\n");
+
+
     const char* content = json_object_get_string(json_object_object_get(gazou_json, "content"));
     printf("%s\n", content);
+
+
     const char* date = json_object_get_string(json_object_object_get(gazou_json, "date"));
-    printf("%s\n", date);
+    //TODO: voir avec Clément
+    /*json_object* retweet_date_json;
+    if (json_object_object_get_ex(gazou_json, "retweet_date", &retweet_date_json)) {
+        date = json_object_get_string(retweet_date_json);
+    }*/
+
+    printf("\033[3mLe %.*s à %s\033[0m\n", 10, date, date+11);
     printf("\n");
 }
 
