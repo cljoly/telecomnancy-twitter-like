@@ -140,6 +140,7 @@ Voici un exemple de la structure JSON d'un Gazouilli. Elle comporte trois champs
     "content": "Bonjour #MyTwitter et #HelloWorld !",
     "author": "JeanDupont",
     "retweeter": "AnneONyme",
+    "retweet_date": "2019-03-18T17:15:00",
     "list_of_tags": ["MyTwitter", "HelloWorld"],
     "date": "2019-03-18T17:15:00"
 }
