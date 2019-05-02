@@ -15,7 +15,7 @@
 static int prompt_line = HEADER_HEIGHT+1;
 
 static char* commands[] = {
-        "Quitter",
+        "Quitter MyTwitter",
         "Créer un compte",
         "Se connecter",
         "Envoyer un gazouilli",
@@ -154,7 +154,7 @@ void print_message(message_type_t type, const char* format, va_list args) {
     switch(type) {
         case SUCCESS:
             // print in green
-            printf("\033[1;32m");
+            printf("\033[0;32m");
             break;
         case ERROR:
             // print in yellow
@@ -165,7 +165,7 @@ void print_message(message_type_t type, const char* format, va_list args) {
             printf("\033[1;31m");
             break;
         case DEBUG:
-            // print in grey
+            // print in purple
             printf("\033[1;35m");
             break;
         case INFO:
@@ -247,16 +247,12 @@ unsigned int prompt_user(int cookie) {
     read_stdin(buf, 3);
 
     // conversion et test
-    char* endptr;
-    unsigned int input = (unsigned int) strtoul(buf, &endptr, 10);
-    if (endptr == buf) {
-        print_message_above(ERROR, "Veuillez entrer un numéro de commande\n");
-        return UINT_MAX;
-    } else if (input < first_command_index || input > last_command_index) {
+    unsigned int command_id = string_to_unsigned_int(buf);
+    if (command_id < first_command_index || command_id > last_command_index) {
         print_message_above(ERROR, "Veuillez entrer une commande valide\n");
         return UINT_MAX;
     } else {
-        return input;
+        return command_id;
     }
 }
 

@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,4 +31,15 @@ void get_iso_time_now(char* result){
     tm_info = localtime(&timer);
 
     strftime(result, 26, "%Y-%m-%dT%H:%M:%S", tm_info);
+}
+
+
+unsigned int string_to_unsigned_int(char* string) {
+    char* endptr;
+    unsigned int input = (unsigned int) strtoul(string, &endptr, 10);
+    if (endptr == string) {
+        return UINT_MAX;
+    } else {
+        return input;
+    }
 }
