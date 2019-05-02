@@ -11,21 +11,24 @@
 #include "tools.h"
 #include "terminal.h"
 
+#define HEADER_HEIGHT 9
+static int prompt_line = HEADER_HEIGHT+1;
+
 static char* commands[] = {
         "Quitter",
         "Créer un compte",
         "Se connecter",
-        "Envoyer un gazouilli         ",
-        "Gazouillis reçus             ",
-        "Relayer un gazouilli         ",
-        "Suivre un utilisateur        ",
+        "Envoyer un gazouilli",
+        "Gazouillis reçus",
+        "Relayer un gazouilli",
+        "Suivre un utilisateur",
         "Ne plus suivre un utilisateur",
-        "Utilisateurs suivis          ",
-        "Mes Abonnés                  ",
-        "Suivre une thématique        ",
-        "Ne plus suivre une thématique",
-        "Thématique suivies           ",
-        "Déconnexion                  "
+        "Utilisateurs suivis",
+        "Mes Abonnés",
+        "Suivre un tag",
+        "Ne plus suivre un tag",
+        "Tags suivis",
+        "Déconnexion"
 };
 
 static const unsigned int commands_count = sizeof(commands) / sizeof(char*);
@@ -55,7 +58,7 @@ void clear_all_terminal() {
  */
 void clear_terminal_except_header() {
     clear_above_below_positions();
-    printf("\033[9;1H");
+    printf("\033[%d;1H", HEADER_HEIGHT);
 }
 
 /**
@@ -75,20 +78,69 @@ void print_menu(unsigned int first_command_index, unsigned int last_command_inde
         printf("-");
     }
     printf("\n");
+    prompt_line = HEADER_HEIGHT+1;
+
     unsigned int printed_line_chars = 0;
+
+    // On récupère la taille de la plus grande commande
+    unsigned int longest_command = 0;
     for (unsigned int i = first_command_index; i <= last_command_index; i++) {
-        printed_line_chars += 5 + strlen(commands[i]);
-        printf("%2d - %s\t", i , commands[i]);
-        if(((i+1-first_command_index) % 5 == 0) && (i+1 <= last_command_index)) {
-            printf("\n");
+        const size_t command_length = strlen(commands[i]);
+        if(command_length > longest_command) {
+            longest_command = command_length;
         }
     }
+
+    // On compte les caractères à afficher pour une commande (numéro + ' - ' + longueur de commande)
+    const unsigned int entry_length = 2 + 3 + longest_command;
+
+    for (unsigned int i = first_command_index; i <= last_command_index; i++) {
+        // Affichage de la commande
+        printf("%2d - %s", i , commands[i]);
+
+
+        // Tout le reste du bloc concerne la gestion de l'indentation dynamique et des sauts de ligne
+
+        // S'il reste au moins une commande à afficher
+        if( i+1 <= last_command_index) {
+
+            // Si on ne peut pas afficher la prochaine commande ( caractères déjà affichés + commande i et espaces + prochaine commande)
+            if (w.ws_col == 0 || printed_line_chars + entry_length + strlen(commands[i+1]) >= w.ws_col) {
+                printf("\n");
+                prompt_line++;
+                printed_line_chars = 0;
+            } else {
+                // On "complète" la commande avec des espaces pour obtenir une indentation régulière
+                unsigned int j = strlen(commands[i]);
+                while(j <= longest_command && printed_line_chars + j < w.ws_col) {
+                    printf(" ");
+                    j++;
+                }
+
+                printed_line_chars += 2 + 3 + j;
+
+                // 4 espaces supplémentaires entre chaque commande
+                if(printed_line_chars + j + 4 < w.ws_col) {
+                    printf("    ");
+                    printed_line_chars += 4;
+                } else {
+                    printf("\n");
+                    prompt_line++;
+                    printed_line_chars = 0;
+                }
+            }
+        }
+    }
+
     printf("\n");
+    prompt_line++;
     // print a line
     for (unsigned int j = 0; j < w.ws_col; j++) {
         printf("-");
     }
     printf("\n\n");
+
+    prompt_line+=2;
 }
 
 /**
@@ -155,7 +207,7 @@ void print_message_above(message_type_t type, const char* format, ...) {
  * @param ... Paramètres éventuels de format (comme pour printf)
  */
 void print_message_below(message_type_t type, const char* format, ...) {
-    printf("\033[%d;1H", 16+below_count);
+    printf("\033[%d;1H", prompt_line+2+below_count);
     below_count++;
 
     va_list args;
@@ -180,14 +232,14 @@ unsigned int prompt_user(int cookie) {
     print_menu(first_command_index, last_command_index);
     // prompt
     if(cookie != -1) {
-        printf("\033[14;1H");
+        printf("\033[%d;1H", prompt_line);
         printf("\033[0;34m");
-        printf("Bonjour %s !", username);
+        printf("Connecté en tant que %s.", username);
         printf("\033[0m");
     }
-    printf("\033[15;1H");
+    printf("\033[%d;1H", prompt_line+1);
     printf("\n");
-    printf("\033[15;1H");
+    printf("\033[%d;1H", prompt_line+1);
     printf("> Quelle action voulez-vous effectuer ? ");
 
     // Lecture des données
