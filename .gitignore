@@ -209,6 +209,13 @@ tags
 
 CMakeLists.txt
 
+# Binaires compilés
+src/client/client
+src/server/server
+
+# Bibliothèques incluses
+!lib/**/*.so
+
 # Base de donnée du serveur
 *.sqlite3
 
