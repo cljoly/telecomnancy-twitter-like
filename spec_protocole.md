@@ -255,6 +255,7 @@ Paramètres :
 | `retweet_date` | string | Date du relayage, au même format que pour un objet Gazouilli |
 | `cookie` | int | Authentifie l’utilisateur |
 
+*Note* : Un gazouilli peut-être relayé plusieurs fois.
 
 #### Retour sans erreur :
 
