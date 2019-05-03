@@ -57,9 +57,10 @@ CREATE TABLE "tag_subscription" (
 CREATE TABLE "relay" (
     "gazou_id" INT,
     "retweeter"  TEXT,
+    "retweet_date"  TEXT NOT NULL,
     FOREIGN KEY("gazou_id") REFERENCES gazou("id"),
     FOREIGN KEY("retweeter") REFERENCES user("name"),
-    UNIQUE ("gazou_id","retweeter")
+    UNIQUE ("gazou_id","retweeter", "retweet_date")
     ON CONFLICT ABORT
 );
 

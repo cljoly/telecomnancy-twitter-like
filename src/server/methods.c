@@ -741,6 +741,8 @@ json_object *relay_gazou(json_object *req, sqlite3 *db) {
       json_object_object_get(params, "cookie"));
   int id = json_object_get_int(
       json_object_object_get(params, "id_gazouilli"));
+  const char *retweet_date = json_object_get_string(
+      json_object_object_get(params, "retweet_date"));
 
   // Récupération du nom utilisateur
   char user[USERNAME_MAXSIZE];
@@ -783,9 +785,9 @@ json_object *relay_gazou(json_object *req, sqlite3 *db) {
 
   // Insérons l’information de relayage
   sqlite3_snprintf(BUFSIZE, stmt,
-      "INSERT INTO relay(gazou_id, retweeter) "\
-      "VALUES ('%i', %Q);",
-      id, user);
+      "INSERT INTO relay(gazou_id, retweeter, retweet_date) "\
+      "VALUES ('%i', %Q, %Q);",
+      id, user, retweet_date);
   edr = exec_db(db, stmt, NULL, NULL);
   if (edr != 0) {
     return create_answer(req, SPEC_ERR_INTERNAL_SRV);
@@ -818,7 +820,7 @@ json_object *get_gazou(json_object *req, sqlite3 *db) {
   char stmt[BUFSIZE];
   // Récupérations des ids des gazouillis
   sqlite3_snprintf(BUFSIZE, stmt,
-      "SELECT DISTINCT id, date, content, author, retweeter FROM gazou "\
+      "SELECT DISTINCT id, retweet_date, content, author, retweeter FROM gazou "\
       "LEFT JOIN gazou_tag ON gazou.id = gazou_tag.gazou_id "\
       "INNER JOIN relay ON gazou.id = relay.gazou_id "\
       "WHERE author IN (SELECT followed FROM user_subscription WHERE follower = %Q) "\
