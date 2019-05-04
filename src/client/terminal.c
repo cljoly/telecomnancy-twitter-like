@@ -261,7 +261,8 @@ unsigned int prompt_user(int cookie) {
  * @param result L'entrée tappée par l'utilisateur
  * @return 1 en cas d'erreur, 0 sinon
  */
-int prompt_user_for_parameter(const char* prompt, char* result) {
+int prompt_user_for_parameter(const char* prompt, char* result, unsigned int parameter_index) {
+    printf("\033[%d;1H", parameter_index+3);
     printf("%s : ", prompt);
     size_t length = read_stdin(result, MAXDATASIZE);
     //Si la longueur vaut 0, c'est une erreur

@@ -183,7 +183,7 @@ int send_gazou(){
     memset(buf, 0, MAXDATASIZE);
 
     //Si le message tapé est vide
-    if (prompt_user_for_parameter("Gazouilli", buf) != 0) {
+    if (prompt_user_for_parameter("Gazouilli", buf, 0) != 0) {
         print_message_above(ERROR, "Veuillez entrer un message non vide\n");
         return 1;
     }
@@ -698,7 +698,7 @@ int relay_gazou(){
         char buf[MAXDATASIZE];
         json_object* params_relay = json_object_new_object();
         memset(buf, 0, MAXDATASIZE);
-        if (prompt_user_for_parameter("ID du gazouilli à relayer", buf) != 0) {
+        if (prompt_user_for_parameter("ID du gazouilli à relayer", buf, 0) != 0) {
             return 1;
         }
         const unsigned int requested_gazou_id = string_to_unsigned_int(buf);
@@ -820,9 +820,9 @@ int fill_request(json_object* request, const char** params_name) {
     json_object* params = json_object_new_object();
     for (int i = 0; params_name[i] != NULL; i++) {
         memset(buf, 0, MAXDATASIZE);
-        if (prompt_user_for_parameter(params_name[i], buf) != 0) {
-            print_message_above(ERROR, "Veuillez entrer une valeur pour tous les champs.");
-            return 1;
+        while (prompt_user_for_parameter(params_name[i], buf, i) != 0) {
+            print_message_above(ERROR, "Veuillez entrer une valeur pour le champ %s.", params_name[i]);
+            memset(buf, 0, MAXDATASIZE);
         }
         if (json_object_object_add(params, params_name[i], json_object_new_string(buf)) != 0) {
             return 2;

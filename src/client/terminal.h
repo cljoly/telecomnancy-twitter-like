@@ -13,7 +13,7 @@ void print_message(message_type_t type, const char* format, va_list args);
 void print_message_above(message_type_t type, const char* format, ...);
 void print_message_below(message_type_t type, const char* format, ...);
 unsigned int prompt_user(int connected);
-int prompt_user_for_parameter(const char* prompt, char* result);
+int prompt_user_for_parameter(const char* prompt, char* result, unsigned int parameter_index);
 
 void print_title();
 
