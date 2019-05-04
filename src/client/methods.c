@@ -143,8 +143,15 @@ int connect_server() {
             // Récupération du nom de l'utilisateur
             const json_object* params_json = json_object_object_get(request, "params");
             const char* username_params = json_object_to_json_string(json_object_object_get(params_json, "username"));
-            username = calloc(strlen(username_params)+1, sizeof(char));
-            strcpy(username, username_params);
+            const size_t username_params_len = strnlen(username_params, MAXDATASIZE);
+
+            if(username_params[0] == '"' && username_params[username_params_len-1] == '"') {
+                username = calloc(username_params_len-1, sizeof(char));
+                strncpy(username, username_params+1, strlen(username_params)-2);
+            } else {
+                username = calloc(username_params_len+1, sizeof(char));
+                strncpy(username, username_params, MAXDATASIZE);
+            }
 
             break;
 

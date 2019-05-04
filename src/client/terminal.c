@@ -233,7 +233,7 @@ unsigned int prompt_user(int cookie) {
     if(cookie != -1) {
         printf("\033[%d;1H", prompt_line);
         printf("\033[0;34m");
-        printf("Connecté en tant que %s.", username);
+        printf("Connecté en tant que %s", username);
         printf("\033[0m");
     }
     printf("\033[%d;1H", prompt_line+1);
