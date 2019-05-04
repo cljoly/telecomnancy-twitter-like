@@ -2,47 +2,104 @@
 
 Projet de RSA, TELECOM 2A IL, réalisation d'un Twitter
 
-Actors :
+Acteurs :
 - Laury de Donato
 - Clément Joly
 
 ## Dépendances
 
-Les bibliothèques utilisées sont :
+Les bibliothèques utilisées et nécessaires à l'application sont :
 
 - [json-c](http://json-c.github.io/json-c/) : version 0.12
 - [sqlite](http://sqlite.org/) : version 3.28
+
 
 ## Mode d’emploi
 
 Pour tout ce qui suit, cloner le dépot et aller dans le dossier cloné.
 
-Les dépendances doivent aussi avoir été installées
+**Les dépendances doivent aussi avoir été installées afin que l'application puisse être compilée et donc fonctionner.**
 
-### Lancer le client
+### Compilation de l'application
+
+Pour compiler l'application, deux choix sont possibles :
+- Il est possible de compiler l'application de manière globale. 
+- Il est aussi possible de compiler le client et le serveur séparément.
+
+#### Application globale :
+
+Dans le dossier racine effectuer la commande suivante :
 
 ```
 make
-./client
+```
+  
+Cette commande compile à la fois le client et le serveur, et initialise la base
+de données si elle ne l'a pas déjà été précédemment.
+
+
+#### Client uniquement
+
+Dans le dossier racine effectuer la commande suivante :
+
+```
+cd src/client
+make
 ```
 
-### Lancer le server
+Ou directement dans le dossier `src/client` la commande suivante :
 
 ```
 make
-./server
+```
+#### Serveur uniquement
+
+Dans le dossier racine effectuer la commande suivante :
+
+```
+cd src/serveur
+make
 ```
 
-### `clean`
+Ou directement dans le dossier `src/serveur` la commande suivante :
 
-Pour supprimer les artefact de compilation, faire
 ```
+make
+```
+
+### Lancement de l'application
+
+Pour le client, deux choix sont possibles :
+ - Dans le dossier racine :
+   ``` bash
+   ./client IP_ou_nom_serveur [port]   #Lien symbolique pointant vers src/client/client
+   ```
+ - Dans le dossier `src/client` :
+  ``` bash
+  ./client IP_ou_nom_serveur [port]
+  ```
+   
+Pour le serveur, deux choix sont possibles :
+ - Dans le dossier racine :
+   ``` bash
+   ./server [port]   #Lien symbolique pointant vers src/server/server
+   ```
+ - Dans le dossier `src/server` :
+  ``` bash
+  ./server [port]
+  ```
+   
+   
+### Suppression des artefacts de compilation : `clean`
+
+Pour supprimer les artefact de compilation, effectuer dans le dossier racine la commande suivante :
+``` bash
 make clean
 ```
 
-### `clean_all`
+### Suppression des artefacts de compilation et des données du serveur : `clean_all`
 
-Pour supprimer les artefact de compilation et les données du serveur, faire
+Pour supprimer les artefact de compilation et les données du serveur, effectuer dans le dossier racine la commande suivante :
 ```
 make clean_all
 ```
