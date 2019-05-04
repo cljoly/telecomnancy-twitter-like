@@ -186,11 +186,11 @@ int send_gazou(){
     printf("Envoi d'un gazouilli\n\n");
 
     //Récupération du message tapé par l'utilisateur
-    char buf[MAXDATASIZE];
-    memset(buf, 0, MAXDATASIZE);
+    char buf[MAXDATASIZE+2];
+    memset(buf, 0, MAXDATASIZE+2);
 
     //Si le message tapé est vide
-    if (prompt_user_for_parameter("Gazouilli", buf, 0) != 0) {
+    if (prompt_user_for_parameter("Gazouilli", buf, MAXDATASIZE+2, 0) != 0) {
         print_message_above(ERROR, "Veuillez entrer un message non vide\n");
         return 1;
     }
@@ -198,7 +198,7 @@ int send_gazou(){
     //Si le message tapé fait plus de 140 caractères
     if (strlen(buf) > 140){
         print_message_above(ERROR, "Veuillez entrer un message de moins de 140 caractères\n");
-        return 2;
+        return 0;
     }
 
 
@@ -706,7 +706,7 @@ int relay_gazou(){
         char buf[MAXDATASIZE];
         json_object* params_relay = json_object_new_object();
         memset(buf, 0, MAXDATASIZE);
-        if (prompt_user_for_parameter("ID du gazouilli à relayer", buf, 0) != 0) {
+        if (prompt_user_for_parameter("ID du gazouilli à relayer", buf, MAXDATASIZE, 0) != 0) {
             return 1;
         }
         const unsigned int requested_gazou_id = string_to_unsigned_int(buf);
@@ -835,7 +835,7 @@ int fill_request(json_object* request, const char** params_name) {
             // On le redemande
 
             // Si le contenu est vide
-            if(prompt_user_for_parameter(params_name[i], buf, i) != 0) {
+            if(prompt_user_for_parameter(params_name[i], buf, MAXDATASIZE, i) != 0) {
                 print_message_above(ERROR, "Veuillez entrer une valeur pour le champ %s.\n", params_name[i]);
                 memset(buf, 0, MAXDATASIZE);
             }

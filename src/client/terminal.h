@@ -16,7 +16,7 @@ void print_message_below(message_type_t type, const char* format, ...);
 void clean_line(unsigned int line);
 void print_cleaned_line(unsigned int terminal_row, const char* format, ...);
 unsigned int prompt_user(int connected);
-int prompt_user_for_parameter(const char* prompt, char* result, unsigned int parameter_index);
+int prompt_user_for_parameter(const char* prompt, char* result, size_t bufsize,  unsigned int parameter_index);
 
 void print_title();
 
