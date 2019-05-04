@@ -827,9 +827,29 @@ int fill_request(json_object* request, const char** params_name) {
     json_object* params = json_object_new_object();
     for (int i = 0; params_name[i] != NULL; i++) {
         memset(buf, 0, MAXDATASIZE);
-        while (prompt_user_for_parameter(params_name[i], buf, i) != 0) {
-            print_message_above(ERROR, "Veuillez entrer une valeur pour le champ %s.", params_name[i]);
-            memset(buf, 0, MAXDATASIZE);
+        int valid_param = 0;
+
+        // Tant que le paramètre demandé n'est pas valide
+        while (valid_param == 0) {
+            // On le redemande
+
+            // Si le contenu est vide
+            if(prompt_user_for_parameter(params_name[i], buf, i) != 0) {
+                print_message_above(ERROR, "Veuillez entrer une valeur pour le champ %s.\n", params_name[i]);
+                memset(buf, 0, MAXDATASIZE);
+            }
+            // Dans le cas d'un username
+            else if(strcmp(params_name[i], "username") == 0 ) {
+                // S'il ne commence pas par un '@', il n'est pas valide
+                if(buf[0] != '@' || strlen(buf) == 1) {
+                    print_message_above(ERROR, "Un nom d'utilisateur doit toujours commencer par '@'\n");
+                    memset(buf, 0, MAXDATASIZE);
+                } else {
+                    valid_param = 1;
+                }
+            } else {
+                valid_param = 1;
+            }
         }
         if (json_object_object_add(params, params_name[i], json_object_new_string(buf)) != 0) {
             return 2;
