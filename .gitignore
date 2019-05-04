@@ -219,3 +219,4 @@ src/server/server
 
 # Rapport
 *.pdf
+!page_de_garde.pdf
