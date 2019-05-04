@@ -1,5 +1,5 @@
 #include <errno.h>
-#include <json-c/json.h>
+#include <json.h>
 #include <limits.h>
 #include <netdb.h>
 #include <signal.h>
@@ -96,8 +96,8 @@ int get_response_result(unsigned int id, json_object** result) {
         json_object_put(response);
         return error_code;
     } else {
-        json_object_deep_copy(json_object_object_get(response, "params"), result, NULL);
-        json_object_put(response);
+        *result = json_object_object_get(response, "params");
+        //json_object_put(response);
         return 0;
     }
 }

@@ -12,8 +12,8 @@ SRCEXT      := c
 OBJEXT      := o
 
 #Flags and Libraries
-CFLAGS      := -Wall -Werror -Wextra -Wformat -g -I../../lib/json-c/include
-LIB         := ../../lib/json-c/lib/libjson-c.so ../../lib/sqlite3/lib/libsqlite3.so
+CFLAGS      := -Wall -Werror -Wextra -Wformat -g $(shell pkg-config --cflags json-c)
+LIB         := $(shell pkg-config --libs json-c) -lsqlite3
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE

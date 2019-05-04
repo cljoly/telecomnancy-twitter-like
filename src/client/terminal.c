@@ -166,8 +166,9 @@ void print_message(message_type_t type, const char* format, va_list args) {
             break;
         case DEBUG:
             // print in purple
-            printf("\033[1;35m");
-            break;
+            //printf("\033[1;35m");
+            //on ne fait rien
+            return;
         case INFO:
         default:
             // print in blue
