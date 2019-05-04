@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
           perror("server: fork error");
           exit(7);
         } else if (childpid == 0) { // Fils
-          printf("Forked %i, sock_client %i\n", getpid(), sock_client);
+          printf("Forked %i (for client %i), sock_client %i\n", getpid(), i, sock_client);
           close(sockfd);
           // Dispatch request renvoie le nombre de donnée lues.
           int dispatch_result = 1;
@@ -137,13 +137,13 @@ int main(int argc, char *argv[]) {
             dispatch_result = dispatch_request(newsockfd, db);
             printf("%i: dispatch_result: %i\n", getpid(), dispatch_result);
           }
-          printf("%i: Fermeture de la connexion au client %i…\n", getpid(), i);
+          printf("%i: (fils)Fermeture de la connexion au client %i…\n", getpid(), i);
           close_db(db);
           close(sock_client);
           exit(0);
         }
         // Fermeture socket, désenregistrement du client
-        printf("%i: Fermeture de la connexion au client %i…\n", getpid(), i);
+        printf("%i: (père)Fermeture de la connexion au client %i, sock %i…\n", getpid(), i, sock_client);
         close(sock_client);
         tab_clients[i]=-1;
         FD_CLR(sock_client, &rset);

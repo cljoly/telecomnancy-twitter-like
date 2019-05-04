@@ -46,11 +46,13 @@ int dispatch_request(int sockfd, sqlite3 *db) {
 
   int nrcv;
   int nsnd;
-  char msg[BUFSIZE] = {'\0'};
+  char msg[BUFSIZE];
 
   // Attendre le message envoyé par le client
-  memset((char *)msg, 0, sizeof(msg));
+  memset((char *)msg, '\0', sizeof(msg));
   if ((nrcv = read(sockfd, msg, sizeof(msg) - 1)) < 0) {
+    fprintf(stderr, "dispatch: readn error on socket %i, ", sockfd);
+    fprintf(stderr, "msg: %s, sizeof(msg)-1: %lu", msg, sizeof(msg) - 1);
     perror("dispatch: readn error on socket");
     exit(8);
   }
