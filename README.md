@@ -10,8 +10,8 @@ Actors :
 
 Les bibliothèques utilisées sont :
 
-- [json-c](http://json-c.github.io/json-c/)
-- [sqlite](http://sqlite.org/)
+- [json-c](http://json-c.github.io/json-c/) : version 0.12
+- [sqlite](http://sqlite.org/) : version 3.28
 
 ## Mode d’emploi
 
