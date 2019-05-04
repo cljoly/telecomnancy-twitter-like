@@ -855,6 +855,7 @@ int fill_request(json_object* request, const char** params_name) {
             return 2;
         }
     }
+    clear_above_messages();
     if (cookie != -1){
         json_object_object_add(params, "cookie", json_object_new_int(cookie));
     }
