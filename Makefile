@@ -15,6 +15,6 @@ clean_all:
 	make clean
 
 rapport:
-	pandoc -i rapport.md spec_protocole.md -o rapport.pdf
+	pandoc -i rapport.md spec_protocole.md -V geometry:"top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm" -o rapport.pdf
 	
 .PHONY: $(TOPTARGETS) $(SUBDIRS) rapport
