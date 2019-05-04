@@ -648,11 +648,6 @@ void print_gazou(json_object* gazou_json){
 
 
     const char* date = json_object_get_string(json_object_object_get(gazou_json, "date"));
-    //TODO: voir avec Clément
-    /*json_object* retweet_date_json;
-    if (json_object_object_get_ex(gazou_json, "retweet_date", &retweet_date_json)) {
-        date = json_object_get_string(retweet_date_json);
-    }*/
 
     printf("\033[3mLe %.*s à %s\033[0m\n", 10, date, date+11);
     printf("\n");
@@ -780,7 +775,6 @@ int relay_gazou(){
 
 /**
  * Ferme la socket et quitte le programme.
- * TODO: déconnexion propre
  * @return
  */
 int disconnect() {
