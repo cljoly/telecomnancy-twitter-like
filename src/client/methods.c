@@ -103,6 +103,7 @@ int create_account() {
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -159,6 +160,7 @@ int connect_server() {
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -260,6 +262,7 @@ int send_gazou(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -305,6 +308,7 @@ int follow_user(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -346,6 +350,7 @@ int unfollow_user(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -387,6 +392,7 @@ int follow_tag(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -428,6 +434,7 @@ int unfollow_tag(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -474,6 +481,7 @@ int list_followed_users(){
 
     } else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -517,6 +525,7 @@ int list_followed_tags(){
             }
     } else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -560,6 +569,7 @@ int list_my_followers(){
         }
     }else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -603,6 +613,7 @@ int get_gazou(){
         }
     } else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -742,6 +753,7 @@ int relay_gazou(){
 
             default:
                 handle_generic_error_code(error_code);
+                error_code = 0;
                 break;
         }
 
@@ -751,6 +763,7 @@ int relay_gazou(){
     } else {
         // Erreur pour la liste des gazous
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
     clear_terminal_except_header();
     return error_code;
