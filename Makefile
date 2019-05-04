@@ -14,5 +14,7 @@ clean_all:
 	rm db.sqlite3 src/client/client src/server/server
 	make clean
 
+rapport:
+	pandoc -i rapport.md spec_protocole.md -o rapport.pdf
 	
-.PHONY: $(TOPTARGETS) $(SUBDIRS)
+.PHONY: $(TOPTARGETS) $(SUBDIRS) rapport

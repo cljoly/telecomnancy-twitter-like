@@ -1,11 +1,9 @@
-# MyTwitter : Spécification du protocole de communication client/serveur
+# Spécification du protocole de communication client/serveur
 
 Version: 1.0
 
 
 ## Introduction
-
-Dans le cadre du projet de RSA, nous écrivons un service semblable à Twitter[^t].
 
 Ce document décrit le protocole de communication entre un client et un serveur de ce service.
 
@@ -477,9 +475,6 @@ Paramètres :
 
 Valeur des codes d'erreur : aucun, hormis les codes globaux définis plus haut
 
-## Références
-
-[^t]: https://twitter.com/
 [^msgpack]: https://msgpack.org/
 [^json]: http://json.org/
 [^jrpc]: https://www.jsonrpc.org/specification
