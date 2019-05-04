@@ -685,6 +685,7 @@ int relay_gazou(){
 
         if (array_list_length(list_of_gazous) == 0) {
             print_message_below(SUCCESS, "Aucun gazouilli relayable.\n");
+            return 0;
         } else {
             print_message_below(SUCCESS, "Liste des gazouillis relayables :\n");
             for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
