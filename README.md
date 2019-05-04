@@ -10,7 +10,7 @@ Acteurs :
 
 Les bibliothèques utilisées et nécessaires à l'application sont :
 
-- [json-c](http://json-c.github.io/json-c/) : version 0.12
+- [json-c](http://json-c.github.io/json-c/) : version 0.13
 - [sqlite](http://sqlite.org/) : version 3.28
 
 
