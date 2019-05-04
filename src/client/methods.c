@@ -788,6 +788,7 @@ int disconnect() {
  * @return
  */
 int quit(){
+    clear_all_terminal();
     printf("Fermeture du programme et de la connexion.\n");
     free(username);
     close(sockfd);

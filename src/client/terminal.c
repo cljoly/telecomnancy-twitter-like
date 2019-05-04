@@ -39,9 +39,7 @@ static int below_count = 0;
 extern char* username;
 
 void clear_above_below_positions() {
-    if( above_count != 2) {
-        above_count = 0;
-    }
+    above_count = 0;
     below_count = 0;
 }
 
@@ -191,7 +189,7 @@ void print_message_above(message_type_t type, const char* format, ...) {
     printf("\033[%d;1H", (5+above_count));
     above_count++;
     if( above_count > 9) {
-        above_count=5;
+        above_count=0;
     }
 
     va_list args;
