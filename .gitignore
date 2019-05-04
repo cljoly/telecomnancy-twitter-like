@@ -217,3 +217,5 @@ src/server/server
 # Base de donnée du serveur
 *.sqlite3
 
+# Rapport
+*.pdf
