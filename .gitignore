@@ -217,3 +217,7 @@ src/server/server
 # Base de donnée du serveur
 *.sqlite3
 
+# Rapport
+*.pdf
+!page_de_garde.pdf
+!rapport_RSA_DE_DONATO_JOLY.pdf
