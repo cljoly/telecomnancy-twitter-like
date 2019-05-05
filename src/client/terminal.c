@@ -39,9 +39,7 @@ static int below_count = 0;
 extern char* username;
 
 void clear_above_below_positions() {
-    if( above_count != 2) {
-        above_count = 0;
-    }
+    above_count = 0;
     below_count = 0;
 }
 
@@ -59,6 +57,13 @@ void clear_all_terminal() {
 void clear_terminal_except_header() {
     clear_above_below_positions();
     printf("\033[%d;1H", HEADER_HEIGHT);
+}
+
+void clear_above_messages() {
+    for(unsigned int i=5; i<HEADER_HEIGHT; i++) {
+        clean_line(i);
+    }
+    clear_above_below_positions();
 }
 
 /**
@@ -188,10 +193,10 @@ void print_message(message_type_t type, const char* format, va_list args) {
  * @param ... Paramètres éventuels de format (comme pour printf)
  */
 void print_message_above(message_type_t type, const char* format, ...) {
-    printf("\033[%d;1H", (5+above_count));
+    clean_line(5+above_count);
     above_count++;
-    if( above_count > 9) {
-        above_count=5;
+    if( above_count > 4) {
+        above_count=0;
     }
 
     va_list args;
@@ -208,12 +213,33 @@ void print_message_above(message_type_t type, const char* format, ...) {
  * @param ... Paramètres éventuels de format (comme pour printf)
  */
 void print_message_below(message_type_t type, const char* format, ...) {
-    printf("\033[%d;1H", prompt_line+2+below_count);
+    clean_line(prompt_line+2+below_count);
     below_count++;
 
     va_list args;
     va_start(args, format);
     print_message(type, format, args);
+    va_end(args);
+}
+
+void clean_line(unsigned int line) {
+    // get terminal info
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+    printf("\033[%d;1H", line);
+    for(int i = 0; i < w.ws_col-1; i++) {
+        printf(" ");
+    }
+    printf("\n");
+    printf("\033[%d;1H", line);
+}
+
+void print_cleaned_line(unsigned int line, const char* format, ...) {
+    clean_line(line);
+    va_list args;
+    va_start(args, format);
+    vfprintf(stdout, format, args);
     va_end(args);
 }
 
@@ -233,15 +259,9 @@ unsigned int prompt_user(int cookie) {
     print_menu(first_command_index, last_command_index);
     // prompt
     if(cookie != -1) {
-        printf("\033[%d;1H", prompt_line);
-        printf("\033[0;34m");
-        printf("Connecté en tant que %s.", username);
-        printf("\033[0m");
+        print_cleaned_line(prompt_line, "\033[0;34mConnecté en tant que %s\033[0m", username);
     }
-    printf("\033[%d;1H", prompt_line+1);
-    printf("\n");
-    printf("\033[%d;1H", prompt_line+1);
-    printf("> Quelle action voulez-vous effectuer ? ");
+    print_cleaned_line(prompt_line+1, "> Quelle action voulez-vous effectuer ? ");
 
     // Lecture des données
     char buf[3] = {'\0'};
@@ -263,9 +283,9 @@ unsigned int prompt_user(int cookie) {
  * @param result L'entrée tappée par l'utilisateur
  * @return 1 en cas d'erreur, 0 sinon
  */
-int prompt_user_for_parameter(const char* prompt, char* result) {
-    printf("%s : ", prompt);
-    size_t length = read_stdin(result, MAXDATASIZE);
+int prompt_user_for_parameter(const char* prompt, char* result, size_t bufsize, unsigned int parameter_index) {
+    print_cleaned_line(parameter_index+3, "%s : ", prompt);
+    size_t length = read_stdin(result, bufsize);
     //Si la longueur vaut 0, c'est une erreur
     return length == 0;
 }

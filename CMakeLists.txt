@@ -1,23 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 project(projet_rsa_dedonato_joly C)
 
-set(CMAKE_CXX_STANDARD 14)
-
 ####################################
 # Find JSON-C
 ####################################
 find_path(JSONC_INCLUDE_DIR
         NAMES json.h
-        HINTS lib/json-c
-        PATH_SUFFIXES include
-        NO_DEFAULT_PATH
+        PATH_SUFFIXES include json-c
         )
 
 find_library(JSONC_LIBRARY
         NAMES json-c libjson-c
-        HINTS lib/json-c
         PATH_SUFFIXES lib
-        NO_DEFAULT_PATH
         )
 
 ####################################
@@ -25,16 +19,12 @@ find_library(JSONC_LIBRARY
 ####################################
 find_path(SQLITE3_INCLUDE_DIR
         NAMES sqlite3.h
-        HINTS lib/sqlite3
         PATH_SUFFIXES include
-        NO_DEFAULT_PATH
         )
 
 find_library(SQLITE3_LIBRARY
         NAMES sqlite3
-        HINTS lib/sqlite3
         PATH_SUFFIXES lib
-        NO_DEFAULT_PATH
         )
 
 

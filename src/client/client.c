@@ -97,7 +97,6 @@ int get_response_result(unsigned int id, json_object** result) {
         return error_code;
     } else {
         *result = json_object_object_get(response, "params");
-        //json_object_put(response);
         return 0;
     }
 }

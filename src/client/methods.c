@@ -103,6 +103,7 @@ int create_account() {
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -142,8 +143,15 @@ int connect_server() {
             // Récupération du nom de l'utilisateur
             const json_object* params_json = json_object_object_get(request, "params");
             const char* username_params = json_object_to_json_string(json_object_object_get(params_json, "username"));
-            username = calloc(strlen(username_params)+1, sizeof(char));
-            strcpy(username, username_params);
+            const size_t username_params_len = strnlen(username_params, MAXDATASIZE);
+
+            if(username_params[0] == '"' && username_params[username_params_len-1] == '"') {
+                username = calloc(username_params_len-1, sizeof(char));
+                strncpy(username, username_params+1, strlen(username_params)-2);
+            } else {
+                username = calloc(username_params_len+1, sizeof(char));
+                strncpy(username, username_params, MAXDATASIZE);
+            }
 
             break;
 
@@ -159,6 +167,7 @@ int connect_server() {
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -177,11 +186,11 @@ int send_gazou(){
     printf("Envoi d'un gazouilli\n\n");
 
     //Récupération du message tapé par l'utilisateur
-    char buf[MAXDATASIZE];
-    memset(buf, 0, MAXDATASIZE);
+    char buf[MAXDATASIZE+2];
+    memset(buf, 0, MAXDATASIZE+2);
 
     //Si le message tapé est vide
-    if (prompt_user_for_parameter("Gazouilli", buf) != 0) {
+    if (prompt_user_for_parameter("Gazouilli", buf, MAXDATASIZE+2, 0) != 0) {
         print_message_above(ERROR, "Veuillez entrer un message non vide\n");
         return 1;
     }
@@ -189,7 +198,7 @@ int send_gazou(){
     //Si le message tapé fait plus de 140 caractères
     if (strlen(buf) > 140){
         print_message_above(ERROR, "Veuillez entrer un message de moins de 140 caractères\n");
-        return 2;
+        return 0;
     }
 
 
@@ -260,6 +269,7 @@ int send_gazou(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -305,6 +315,7 @@ int follow_user(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -346,6 +357,7 @@ int unfollow_user(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -387,6 +399,7 @@ int follow_tag(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -428,6 +441,7 @@ int unfollow_tag(){
 
         default:
             handle_generic_error_code(error_code);
+            error_code = 0;
             break;
     }
 
@@ -474,6 +488,7 @@ int list_followed_users(){
 
     } else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -517,6 +532,7 @@ int list_followed_tags(){
             }
     } else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -560,6 +576,7 @@ int list_my_followers(){
         }
     }else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -603,6 +620,7 @@ int get_gazou(){
         }
     } else {
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
 
     // free du résultat
@@ -630,11 +648,6 @@ void print_gazou(json_object* gazou_json){
 
 
     const char* date = json_object_get_string(json_object_object_get(gazou_json, "date"));
-    //TODO: voir avec Clément
-    /*json_object* retweet_date_json;
-    if (json_object_object_get_ex(gazou_json, "retweet_date", &retweet_date_json)) {
-        date = json_object_get_string(retweet_date_json);
-    }*/
 
     printf("\033[3mLe %.*s à %s\033[0m\n", 10, date, date+11);
     printf("\n");
@@ -667,6 +680,7 @@ int relay_gazou(){
 
         if (array_list_length(list_of_gazous) == 0) {
             print_message_below(SUCCESS, "Aucun gazouilli relayable.\n");
+            return 0;
         } else {
             print_message_below(SUCCESS, "Liste des gazouillis relayables :\n");
             for (size_t i = 0; i < array_list_length(list_of_gazous); i++) {
@@ -687,7 +701,7 @@ int relay_gazou(){
         char buf[MAXDATASIZE];
         json_object* params_relay = json_object_new_object();
         memset(buf, 0, MAXDATASIZE);
-        if (prompt_user_for_parameter("ID du gazouilli à relayer", buf) != 0) {
+        if (prompt_user_for_parameter("ID du gazouilli à relayer", buf, MAXDATASIZE, 0) != 0) {
             return 1;
         }
         const unsigned int requested_gazou_id = string_to_unsigned_int(buf);
@@ -742,6 +756,7 @@ int relay_gazou(){
 
             default:
                 handle_generic_error_code(error_code);
+                error_code = 0;
                 break;
         }
 
@@ -751,6 +766,7 @@ int relay_gazou(){
     } else {
         // Erreur pour la liste des gazous
         handle_generic_error_code(error_code);
+        error_code = 0;
     }
     clear_terminal_except_header();
     return error_code;
@@ -759,7 +775,6 @@ int relay_gazou(){
 
 /**
  * Ferme la socket et quitte le programme.
- * TODO: déconnexion propre
  * @return
  */
 int disconnect() {
@@ -775,6 +790,7 @@ int disconnect() {
  * @return
  */
 int quit(){
+    clear_all_terminal();
     printf("Fermeture du programme et de la connexion.\n");
     free(username);
     close(sockfd);
@@ -806,14 +822,35 @@ int fill_request(json_object* request, const char** params_name) {
     json_object* params = json_object_new_object();
     for (int i = 0; params_name[i] != NULL; i++) {
         memset(buf, 0, MAXDATASIZE);
-        if (prompt_user_for_parameter(params_name[i], buf) != 0) {
-            print_message_above(ERROR, "Veuillez entrer une valeur pour tous les champs.");
-            return 1;
+        int valid_param = 0;
+
+        // Tant que le paramètre demandé n'est pas valide
+        while (valid_param == 0) {
+            // On le redemande
+
+            // Si le contenu est vide
+            if(prompt_user_for_parameter(params_name[i], buf, MAXDATASIZE, i) != 0) {
+                print_message_above(ERROR, "Veuillez entrer une valeur pour le champ %s.\n", params_name[i]);
+                memset(buf, 0, MAXDATASIZE);
+            }
+            // Dans le cas d'un username
+            else if(strcmp(params_name[i], "username") == 0 ) {
+                // S'il ne commence pas par un '@', il n'est pas valide
+                if(buf[0] != '@' || strlen(buf) == 1) {
+                    print_message_above(ERROR, "Un nom d'utilisateur doit toujours commencer par '@'\n");
+                    memset(buf, 0, MAXDATASIZE);
+                } else {
+                    valid_param = 1;
+                }
+            } else {
+                valid_param = 1;
+            }
         }
         if (json_object_object_add(params, params_name[i], json_object_new_string(buf)) != 0) {
             return 2;
         }
     }
+    clear_above_messages();
     if (cookie != -1){
         json_object_object_add(params, "cookie", json_object_new_int(cookie));
     }
