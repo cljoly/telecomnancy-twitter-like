@@ -778,11 +778,42 @@ int relay_gazou(){
  * @return
  */
 int disconnect() {
-    cookie = -1;
-    print_title();
-    free(username);
-    username = NULL;
-    return 0;
+    // Création de la requête
+    json_object* request = create_request("disconnect");
+    const unsigned int request_id = (unsigned int) json_object_get_int(json_object_object_get(request, "id"));
+
+    json_object* params = json_object_new_object();
+    json_object_object_add(params, "cookie", json_object_new_int(cookie));
+    json_object_object_add(request, "params", params);
+
+
+    if (send_message(json_object_to_json_string(request)) != 0) {
+        return 1;
+    }
+    // free de la requête
+    json_object_put(request);
+
+
+    // Lecture et gestion de la réponse
+    json_object* result_params = NULL;
+    int error_code = get_response_result(request_id, &result_params);
+    if (error_code == 0) {
+
+        cookie = -1;
+        print_title();
+        free(username);
+        username = NULL;
+        error_code = 0;
+
+    } else {
+        handle_generic_error_code(error_code);
+        error_code = 0;
+    }
+
+    // free du résultat
+    json_object_put(result_params);
+    return error_code;
+
 }
 
 /**
@@ -793,6 +824,8 @@ int quit(){
     clear_all_terminal();
     printf("Fermeture du programme et de la connexion.\n");
     free(username);
+    shutdown(sockfd, SHUT_WR);
+    sleep(1);
     close(sockfd);
     exit(0);
 }
