@@ -295,12 +295,12 @@ int prompt_user_for_parameter(const char* prompt, char* result, size_t bufsize, 
  */
 void print_title() {
     printf("\033[0;36m");
-    printf(" __  __      _____          _ _   _\n");
-    printf("|  \\/  |_   |_   _|_      _(_) |_| |_ ___ _ __\n");
-    printf("| |\\/| | | | || | \\ \\ /\\ / / | __| __/ _ \\ '__|\n");
-    printf("| |  | | |_| || |  \\ V  V /| | |_| ||  __/ |\n");
-    printf("|_|  |_|\\__, ||_|   \\_/\\_/ |_|\\__|\\__\\___|_|\n");
-    printf("        |___/\n");
+    print_cleaned_line(1, " __  __      _____          _ _   _\n");
+    print_cleaned_line(2, "|  \\/  |_   |_   _|_      _(_) |_| |_ ___ _ __\n");
+    print_cleaned_line(3, "| |\\/| | | | || | \\ \\ /\\ / / | __| __/ _ \\ '__|\n");
+    print_cleaned_line(4, "| |  | | |_| || |  \\ V  V /| | |_| ||  __/ |\n");
+    print_cleaned_line(5, "|_|  |_|\\__, ||_|   \\_/\\_/ |_|\\__|\\__\\___|_|\n");
+    print_cleaned_line(6, "        |___/\n");
     printf("\033[0m");
     above_count = 2;
     below_count = 0;
