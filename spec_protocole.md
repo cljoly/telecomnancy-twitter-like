@@ -136,8 +136,8 @@ Voici un exemple de la structure JSON d'un Gazouilli. Elle comporte trois champs
 {
     "id": 3,
     "content": "Bonjour #MyTwitter et #HelloWorld !",
-    "author": "JeanDupont",
-    "retweeter": "AnneONyme",
+    "author": "@JeanDupont",
+    "retweeter": "@AnneONyme",
     "retweet_date": "2019-03-18T17:15:00",
     "list_of_tags": ["MyTwitter", "HelloWorld"],
     "date": "2019-03-18T17:15:00"
@@ -146,10 +146,10 @@ Voici un exemple de la structure JSON d'un Gazouilli. Elle comporte trois champs
 
 ### Utilisateur
 
-Voici un exemple de la structure JSON d'un utilisateur. Elle comporte un champs : `username`.
+Voici un exemple de la structure JSON d'un utilisateur. Elle comporte un champs : `username`. Ce champ doit toujours commencer par un arobase.
 ``` Json
 {
-    "username": "LouisSchmit"
+    "username": "@LouisSchmit"
 }
 ```
 
