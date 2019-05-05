@@ -146,8 +146,6 @@ int main(int argc, char *argv[]) {
         }
         // Fermeture socket, désenregistrement du client
         printf("%i: (père)Fermeture de la connexion au client %i, sock %i…\n", getpid(), i, sock_client);
-        shutdown(sock_client, SHUT_WR);
-        sleep(1);
         close(sock_client);
         tab_clients[i]=-1;
         FD_CLR(sock_client, &rset);
