@@ -15,7 +15,10 @@ la spécification du protocole utilisé pour la communication client/serveur.
 ## Techniques
 
 Nous avons utilisé une base de données et le format de données JSON pour la
-communication client/serveur.
+communication client/serveur. Ceci a été l’occasion d’apprendre à utiliser de
+manière plus approfondie des bibliothèques spécifiques en C comme `sqlite3` ou
+`json-c`. En effet, les projets précédents n’autorisaient pas forcément
+l’utilisation de bibliothèques externes.
 
 Notre projet présente les fonctionnalités facultatives suivantes :
 
@@ -29,6 +32,9 @@ Enfin, dans un souci d’optimisation de la charge pour le serveur, l’ensemble
 des gazouillis récents sont envoyés au client lorsque celui-ci le lui demande. Le
 serveur fournit le nombre de tweet demandé par le client, ce qui simplifie
 l’implémentation côté client. Par ailleurs, le client n’a ainsi rien à stocker.
+
+Des précautions ont été prises afin d’éviter les injections SQL. Cependant, les
+mots de passe sont stockés et transmis en clair, comme autorisé par le sujet.
 
 ## Gestion de projet
 
