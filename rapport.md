@@ -57,4 +57,25 @@ l’instance Gitlab de l’école. Elle était alors discutée puis acceptée ou
 
 # Capture Wireshark
 
-TODO
+Nous avons effectué le schéma suivant et capturé les paquets à l’aide Wireshark (dans la fichier `capture_wireshark.pcapng`) :
+
+1. Le client n°1 lance l’application et se connecte en IPv6 (trame 1). Le serveur accepte la connexion (trames 2 et 3).
+2. Le client n°1 crée un compte pour l’utilisateur « @alice » avec le mot de passe « alice » (trame 4). Le serveur traite la requête (trame 6).
+3. Le client n°1 se connecte avec l’utilisateur « @alice » et le mot de passe « alice » (trame 10). Le serveur traite la requête (trame 11).
+1. Le client n°2 lance l’application et se connecte en IPv4 (trame 15). Le serveur accepte la connexion (trames 16 et 17).
+2. Le client n°2 crée un compte pour l’utilisateur « @bob » avec le mot de passe « bob » (trame 18). Le serveur traite la requête (trame 20).
+3. Le client n°2 se connecte avec l’utilisateur « @bob » et le mot de passe « bob » (trame 24). Le serveur traite la requête (trame 25).
+7. Le client n°1 envoie un gazouilli dont le contenu est « Je teste #MyTwitter » (trame 29). Le serveur traite la requête (trame 31).
+7. Le client n°2 envoie un gazouilli dont le contenu est « J'aime #MyTwitter » (trame 35). Le serveur traite la requête (trame 36).
+7. Le client n°2 demande à suivre le tag « MyTwitter » (trame 40). Le serveur traite la requête et lui indique que le tag est bien suivi (trame 41).
+7. Le client n°2 demande à relayer un gazouilli. Pour cela, le logiciel client récupère d’abord les gazouillis relayables (trame 45 et 46) et les affiche. Le client n°2 choisit de relayer le gazouilli dont l’id est 1 (trame 50). Le serveur traite la requête et lui indique que le gazouilli est bien relayé (trame 51).
+8. Le client n°2 demande l’affichage des gazouillis auxquels il est abonné (trame 55). Le serveur traite la requête et lui renvoie les gazouillis correspondants (trame 56).
+9. Le client n°2 demande à se déconnecter du serveur (trame 60). Le serveur traite la requête (trame 61).
+9. Le client n°1 ferme l’application. Il ferme donc la connexion TCP (trames 71 et 72). Le serveur répond et ferme la connexion (trames 76 et 77).
+9. Le client n°2 ferme l’application. Il ferme donc la connexion TCP (trames 78 et 79). Le serveur répond et ferme la connexion (trames 83 et 84).
+
+
+Nous avons vérifié que les APDUs soient conformes à la spécification. Dans un souci de longueur, nous n’avons pas fait apparaître sur la capture toutes les fonctionnalités proposées par MyTwitter.
+
+\newpage
+
