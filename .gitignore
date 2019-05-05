@@ -220,4 +220,4 @@ src/server/server
 # Rapport
 *.pdf
 !page_de_garde.pdf
-!rapport_rsa_DE_DONATO_JOLY.pdf
+!rapport_RSA_DE_DONATO_JOLY.pdf

@@ -16,6 +16,6 @@ clean_all:
 
 rapport:
 	pandoc -i rapport.md spec_protocole.md -V geometry:"top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm" -o rapport.pdf
-	mutool merge -o rapport_rsa_DE_DONATO_JOLY.pdf page_de_garde.pdf rapport.pdf
+	mutool merge -o rapport_RSA_DE_DONATO_JOLY.pdf page_de_garde.pdf rapport.pdf
 	
 .PHONY: $(TOPTARGETS) $(SUBDIRS) rapport
