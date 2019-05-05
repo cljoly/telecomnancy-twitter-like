@@ -138,6 +138,8 @@ int main(int argc, char *argv[]) {
             printf("%i: dispatch_result: %i\n", getpid(), dispatch_result);
           }
           printf("%i: (fils)Fermeture de la connexion au client %i…\n", getpid(), i);
+          shutdown(sock_client, SHUT_WR);
+          sleep(2);
           close_db(db);
           close(sock_client);
           exit(0);
