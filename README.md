@@ -6,6 +6,10 @@ Acteurs :
 - Laury de Donato
 - Clément Joly
 
+## Rapport du projet
+
+Le rapport du projet contenant l'application est disponible ici : [rapport](rapport_RSA_DE_DONATO_JOLY.pdf)
+
 ## Dépendances
 
 Les bibliothèques utilisées et nécessaires à l'application sont :
@@ -103,4 +107,6 @@ Pour supprimer les artefact de compilation et les données du serveur, effectuer
 ```
 make clean_all
 ```
+
+
 
